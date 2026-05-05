@@ -86,14 +86,26 @@ export default function DashboardPage() {
   }
 
   async function loadAssignments(planId: string) {
-    const { data } = await supabase
-      .from("assignments")
-      .select("id, reading_text, due_date, status, note, completed_at, members(name, phone, access_token)")
-      .eq("plan_id", planId)
-      .order("created_at", { ascending: true });
+  const { data } = await supabase
+    .from("assignments")
+    .select("id, reading_text, due_date, status, note, completed_at, members(name, phone, access_token)")
+    .eq("plan_id", planId)
+    .order("created_at", { ascending: true });
 
-    setAssignments((data as Assignment[]) || []);
-  }
+  type AssignmentFromSupabase = Omit<Assignment, "members"> & {
+    members?:
+      | { name: string; phone: string | null; access_token: string }
+      | { name: string; phone: string | null; access_token: string }[]
+      | null;
+  };
+
+  const normalizedAssignments = ((data ?? []) as unknown as AssignmentFromSupabase[]).map((item) => ({
+    ...item,
+    members: Array.isArray(item.members) ? item.members[0] ?? null : item.members ?? null,
+  }));
+
+  setAssignments(normalizedAssignments);
+}
 
   async function createFamily(event: FormEvent) {
     event.preventDefault();
