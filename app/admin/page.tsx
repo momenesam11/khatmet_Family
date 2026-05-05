@@ -6,8 +6,22 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Button, Card, StatusPill } from "@/components/ui";
 
-type Profile = { id: string; email: string; full_name: string | null; role: string };
-type Family = { id: string; name: string; active: boolean; payment_status: string; owner_id: string; created_at: string; profiles?: Profile | null };
+type Profile = {
+  id: string;
+  email: string;
+  full_name: string | null;
+  role: string;
+};
+
+type Family = {
+  id: string;
+  name: string;
+  active: boolean;
+  payment_status: string;
+  owner_id: string;
+  created_at: string;
+  profiles?: Profile[] | null;
+};
 
 export default function AdminPage() {
   const router = useRouter();
@@ -49,7 +63,7 @@ export default function AdminPage() {
       return;
     }
 
-    setFamilies((data as Family[]) || []);
+    setFamilies((data as unknown as Family[]) || []);
   }
 
   async function setActivation(family: Family, active: boolean) {
@@ -112,8 +126,8 @@ export default function AdminPage() {
                 {families.map((family) => (
                   <tr key={family.id} className="border-t border-slate-100">
                     <td className="p-3 font-bold">{family.name}</td>
-                    <td className="p-3">{family.profiles?.full_name || "—"}</td>
-                    <td className="p-3">{family.profiles?.email || "—"}</td>
+                    <td className="p-3">{family.profiles?.[0]?.full_name || "—"}</td>
+                    <td className="p-3">{family.profiles?.[0]?.email || "—"}</td>
                     <td className="p-3">{family.payment_status}</td>
                     <td className="p-3">
                       <span className={`rounded-full px-3 py-1 text-xs font-bold ${family.active ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
