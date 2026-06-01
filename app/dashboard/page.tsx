@@ -6,8 +6,15 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Button, Card, Input, MiniInfo, Progress, Select, StatusPill } from "@/components/ui";
 
-type Family = { id: string; name: string; active: boolean; payment_status: string; owner_id: string };
-type Member = { id: string; name: string; phone: string | null; level: string; access_token: string; family_id: string };
+type Family = {
+  id: string;
+  name: string;
+  active: boolean;
+  payment_status: string;
+  owner_id: string;
+  current_start_page: number;
+  current_round: number;
+};type Member = { id: string; name: string; phone: string | null; level: string; access_token: string; family_id: string };
 type Plan = { id: string; name: string; start_date: string; end_date: string; type: string; method: string; active: boolean; family_id: string };
 type Assignment = {
   id: string;
@@ -53,7 +60,21 @@ export default function DashboardPage() {
       }
 
       setUserId(data.user.id);
-      await loadFamily(data.user.id);
+      
+      // Smart check: if user has no family row, redirect to onboarding /setup
+      const { data: familyData } = await supabase
+        .from("families")
+        .select("*")
+        .eq("owner_id", data.user.id)
+        .maybeSingle();
+
+      if (!familyData) {
+        router.push("/setup");
+        return;
+      }
+
+      setFamily(familyData);
+      await Promise.all([loadMembers(familyData.id), loadPlans(familyData.id)]);
       setLoading(false);
     }
 
@@ -61,13 +82,18 @@ export default function DashboardPage() {
   }, [router]);
 
   async function loadFamily(currentUserId = userId) {
-    const { data: familyData } = await supabase.from("families").select("*").eq("owner_id", currentUserId).maybeSingle();
-    setFamily(familyData);
+  const { data: familyData } = await supabase
+    .from("families")
+    .select("*")
+    .eq("owner_id", currentUserId)
+    .maybeSingle();
 
-    if (familyData) {
-      await Promise.all([loadMembers(familyData.id), loadPlans(familyData.id)]);
-    }
+  setFamily(familyData);
+
+  if (familyData) {
+    await Promise.all([loadMembers(familyData.id), loadPlans(familyData.id)]);
   }
+}
 
   async function loadMembers(familyId: string) {
     const { data } = await supabase.from("members").select("*").eq("family_id", familyId).order("created_at", { ascending: false });
@@ -149,45 +175,65 @@ export default function DashboardPage() {
   }
 
   async function createPlan(event: FormEvent) {
-    event.preventDefault();
-    if (!family || members.length === 0) return;
+  event.preventDefault();
+  if (!family || members.length === 0) return;
 
-    const today = new Date().toISOString().slice(0, 10);
-    const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  if (plans.length > 0) {
+    setMessage("الحساب له ختمة واحدة فقط. يمكنك إنهاء الورد الحالي وإنشاء ورد جديد داخل نفس الختمة.");
+    return;
+  }
 
-    const { data: planData, error: planError } = await supabase.from("plans").insert({
+  const today = new Date().toISOString().slice(0, 10);
+  const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  const { data: planData, error: planError } = await supabase
+    .from("plans")
+    .insert({
       family_id: family.id,
-      name: planName,
+      name: family.name,
       type: planType,
       method: "توزيع تلقائي",
       start_date: today,
       end_date: endDate,
       active: true,
-    }).select("*").single();
+    })
+    .select("*")
+    .single();
 
-    if (planError || !planData) {
-      setMessage(planError?.message || "لم يتم إنشاء الخطة");
-      return;
-    }
+  if (planError || !planData) {
+    setMessage(planError?.message || "لم يتم إنشاء الختمة");
+    return;
+  }
 
-    const rows = members.map((member, index) => ({
+  const startPage = family.current_start_page || 1;
+
+  const rows = members.map((member, index) => {
+    const from = startPage + index * 2;
+    const to = from + 1;
+
+    return {
       plan_id: planData.id,
       member_id: member.id,
-      reading_text: `من صفحة ${42 + index * 2} إلى صفحة ${43 + index * 2}`,
+      reading_text: `من صفحة ${from} إلى صفحة ${to}`,
       due_date: today,
       status: "assigned",
-    }));
+    };
+  });
 
-    const { error: assignmentError } = await supabase.from("assignments").insert(rows);
+  const { error: assignmentError } = await supabase
+    .from("assignments")
+    .insert(rows);
 
-    if (assignmentError) {
-      setMessage(assignmentError.message);
-      return;
-    }
-
-    await loadPlans(family.id);
-    setActiveTab("tracking");
+  if (assignmentError) {
+    setMessage(assignmentError.message);
+    return;
   }
+
+  await loadPlans(family.id);
+  setActiveTab("tracking");
+}
 
   async function updateAssignment(id: string, status: "done" | "excused" | "assigned") {
     if (!activePlan) return;
@@ -199,6 +245,59 @@ export default function DashboardPage() {
 
     await loadAssignments(activePlan.id);
   }
+
+
+  async function finishCurrentWardAndCreateNew() {
+  if (!family || !activePlan || members.length === 0) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const nextStartPage =
+    (family.current_start_page || 1) + members.length * 2;
+
+  const nextRound =
+    (family.current_round || 1) + 1;
+
+  const rows = members.map((member, index) => {
+    const from = nextStartPage + index * 2;
+    const to = from + 1;
+
+    return {
+      plan_id: activePlan.id,
+      member_id: member.id,
+      reading_text: `من صفحة ${from} إلى صفحة ${to}`,
+      due_date: today,
+      status: "assigned",
+    };
+  });
+
+  const { error: assignmentError } = await supabase
+    .from("assignments")
+    .insert(rows);
+
+  if (assignmentError) {
+    setMessage(assignmentError.message);
+    return;
+  }
+
+  const { error: familyError } = await supabase
+    .from("families")
+    .update({
+      current_start_page: nextStartPage,
+      current_round: nextRound,
+    })
+    .eq("id", family.id);
+
+  if (familyError) {
+    setMessage(familyError.message);
+    return;
+  }
+
+  await loadFamily();
+  setMessage("تم إنهاء الورد الحالي وإنشاء ورد جديد.");
+  setActiveTab("dashboard");
+}
+
 
   async function logout() {
     await supabase.auth.signOut();
@@ -214,6 +313,82 @@ export default function DashboardPage() {
   if (loading) {
     return <main className="grid min-h-screen place-items-center bg-slate-50 p-6">جاري التحميل...</main>;
   }
+
+const latestAssignmentsByMember = new Map<string, Assignment>();
+
+assignments.forEach((assignment) => {
+  const memberName = assignment.members?.name || "";
+  if (!memberName) return;
+  latestAssignmentsByMember.set(memberName, assignment);
+});
+
+const sortedAssignments = [...assignments].sort((a, b) => {
+  if (a.status === "assigned" && b.status !== "assigned") return -1;
+  if (a.status !== "assigned" && b.status === "assigned") return 1;
+  return 0;
+});
+
+function WardShareCard({
+  familyName,
+  planName,
+  assignments,
+}: {
+  familyName: string;
+  planName: string;
+  assignments: Assignment[];
+}) {
+  return (
+    <Card className="overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 p-0 text-white">
+      <div className="p-8">
+        <div className="mb-6 text-center">
+          <p className="text-sm font-bold text-emerald-100">
+            ختمة عيلة
+          </p>
+          <h2 className="mt-2 text-3xl font-black">
+            ورد {familyName}
+          </h2>
+          <p className="mt-2 text-emerald-100">
+            {planName}
+          </p>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          {assignments.map((assignment) => (
+            <div
+              key={assignment.id}
+              className="rounded-2xl bg-white/10 p-4 backdrop-blur"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-lg font-black">
+                    {assignment.members?.name || "—"}
+                  </p>
+                  <p className="mt-1 text-sm text-emerald-100">
+                    {assignment.reading_text}
+                  </p>
+                </div>
+
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-bold ${
+                    assignment.status === "done"
+                      ? "bg-emerald-300 text-emerald-950"
+                      : "bg-amber-200 text-amber-950"
+                  }`}
+                >
+                  {assignment.status === "done" ? "قرأ" : "لم يقرأ"}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-6 text-center text-xs text-emerald-100">
+          يمكن حفظ هذه الصورة ومشاركتها مع جروب واتساب العيلة.
+        </p>
+      </div>
+    </Card>
+  );
+}
 
   if (!family) {
     return (
@@ -278,25 +453,110 @@ export default function DashboardPage() {
           </header>
 
           {activeTab === "dashboard" && (
-            <div className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-4">
-                <Card><p className="text-sm text-slate-500">أفراد العيلة</p><p className="mt-2 text-3xl font-black">{members.length}</p></Card>
-                <Card><p className="text-sm text-slate-500">الختمات النشطة</p><p className="mt-2 text-3xl font-black">{plans.length}</p></Card>
-                <Card><p className="text-sm text-slate-500">إنجاز اليوم</p><p className="mt-2 text-3xl font-black">{progress}%</p></Card>
-                <Card><p className="text-sm text-slate-500">متأخرين</p><p className="mt-2 text-3xl font-black">{delayedCount}</p></Card>
-              </div>
-              <Card>
-                <div className="mb-4 flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-black">{activePlan?.name || "لا توجد خطة نشطة"}</h2>
-                    <p className="text-sm text-slate-500">{activePlan ? `${activePlan.start_date} - ${activePlan.end_date}` : "ابدأ بإنشاء ورد جديد"}</p>
-                  </div>
-                  <Button onClick={() => setActiveTab("plans")}>إنشاء ورد</Button>
-                </div>
-                <Progress value={progress} />
-              </Card>
-            </div>
-          )}
+  <div className="space-y-6">
+    <div className="grid gap-4 md:grid-cols-4">
+      <Card>
+        <p className="text-sm text-slate-500">أفراد العيلة</p>
+        <p className="mt-2 text-3xl font-black">{members.length}</p>
+      </Card>
+
+      <Card>
+        <p className="text-sm text-slate-500">الختمة الحالية</p>
+        <p className="mt-2 text-2xl font-black">
+          {activePlan?.name || "لم تبدأ بعد"}
+        </p>
+      </Card>
+
+      <Card>
+        <p className="text-sm text-slate-500">إنجاز الورد الحالي</p>
+        <p className="mt-2 text-3xl font-black">{progress}%</p>
+      </Card>
+
+      <Card>
+        <p className="text-sm text-slate-500">لم يقرأوا بعد</p>
+        <p className="mt-2 text-3xl font-black">{delayedCount}</p>
+      </Card>
+    </div>
+
+    <Card>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-black">الورد الحالي للأفراد</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            الأشخاص الذين لم يقرأوا يظهرون في أول الجدول.
+          </p>
+        </div>
+
+        <Button
+          onClick={finishCurrentWardAndCreateNew}
+          disabled={!activePlan || members.length === 0}
+        >
+          إنهاء الورد وإنشاء ورد جديد
+        </Button>
+      </div>
+
+      <Progress value={progress} />
+
+      <div className="mt-6 overflow-auto rounded-2xl border border-slate-200">
+        <table className="w-full min-w-[760px] text-right text-sm">
+          <thead className="bg-slate-50 text-slate-500">
+            <tr>
+              <th className="p-3">الفرد</th>
+              <th className="p-3">الورد الحالي</th>
+              <th className="p-3">الحالة</th>
+              <th className="p-3">إجراء</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {sortedAssignments.map((assignment) => (
+              <tr key={assignment.id} className="border-t border-slate-100">
+                <td className="p-3 font-bold">
+                  {assignment.members?.name || "—"}
+                </td>
+
+                <td className="p-3">
+                  {assignment.reading_text}
+                </td>
+
+                <td className="p-3">
+                  <StatusPill status={assignment.status} />
+                </td>
+
+                <td className="p-3">
+                  {assignment.status === "assigned" ? (
+                    <Button
+                      variant="secondary"
+                      onClick={() => updateAssignment(assignment.id, "done")}
+                    >
+                      تسجيل كتم
+                    </Button>
+                  ) : (
+                    <span className="text-sm text-slate-400">تم</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+
+            {sortedAssignments.length === 0 && (
+              <tr>
+                <td className="p-6 text-center text-slate-500" colSpan={4}>
+                  لا يوجد ورد حالي. أضف أفراد العيلة ثم أنشئ الختمة.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+
+    <WardShareCard
+      familyName={family.name}
+      planName={activePlan?.name || "الختمة الحالية"}
+      assignments={sortedAssignments}
+    />
+  </div>
+)}
 
           {activeTab === "members" && (
             <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
@@ -342,23 +602,64 @@ export default function DashboardPage() {
           )}
 
           {activeTab === "plans" && (
-            <Card className="max-w-2xl">
-              <h2 className="text-2xl font-black">إنشاء ورد / ختمة</h2>
-              <p className="mt-2 text-slate-600">سيتم توزيع ورد تجريبي تلقائي على كل أفراد العيلة.</p>
-              <form onSubmit={createPlan} className="mt-6 space-y-4">
-                <Input label="اسم الورد / الختمة" value={planName} onChange={setPlanName} required />
-                <Select label="طريقة التوزيع" value={planType} onChange={setPlanType}>
-                  <option>توزيع بالصفحات</option>
-                  <option>توزيع بالأجزاء</option>
-                  <option>توزيع بالأحزاب</option>
-                  <option>توزيع مخصص</option>
-                </Select>
-                <Button type="submit" disabled={members.length === 0}>إنشاء الخطة</Button>
-              </form>
-              {members.length === 0 && <p className="mt-4 text-sm font-bold text-amber-700">أضف أفراد العيلة الأول.</p>}
-            </Card>
-          )}
+  <Card className="max-w-2xl">
+    <h2 className="text-2xl font-black">الختمة الحالية</h2>
 
+    {activePlan ? (
+      <div className="mt-6 rounded-3xl bg-emerald-50 p-5">
+        <h3 className="text-xl font-black text-emerald-900">
+          {activePlan.name}
+        </h3>
+        <p className="mt-2 text-sm text-emerald-700">
+          الحساب له ختمة واحدة فقط. يمكنك إنشاء ورد جديد من زر "إنهاء الورد وإنشاء ورد جديد" في الرئيسية.
+        </p>
+
+        <Button
+          className="mt-5"
+          onClick={() => setActiveTab("dashboard")}
+        >
+          الذهاب للرئيسية
+        </Button>
+      </div>
+    ) : (
+      <>
+        <p className="mt-2 text-slate-600">
+          سيتم إنشاء ختمة واحدة لهذا الحساب وتوزيع أول ورد على أفراد العيلة.
+        </p>
+
+        <form onSubmit={createPlan} className="mt-6 space-y-4">
+          <Input
+            label="اسم الختمة"
+            value={planName}
+            onChange={setPlanName}
+            required
+          />
+
+          <Select
+            label="طريقة التوزيع"
+            value={planType}
+            onChange={setPlanType}
+          >
+            <option>توزيع بالصفحات</option>
+            <option>توزيع بالأجزاء</option>
+            <option>توزيع بالأحزاب</option>
+            <option>توزيع مخصص</option>
+          </Select>
+
+          <Button type="submit" disabled={members.length === 0}>
+            إنشاء الختمة
+          </Button>
+        </form>
+
+        {members.length === 0 && (
+          <p className="mt-4 text-sm font-bold text-amber-700">
+            أضف أفراد العيلة الأول.
+          </p>
+        )}
+      </>
+    )}
+  </Card>
+)}
           {activeTab === "tracking" && (
             <Card>
               <div className="mb-6 flex items-center justify-between">
@@ -418,5 +719,6 @@ export default function DashboardPage() {
         </section>
       </div>
     </main>
+    
   );
 }

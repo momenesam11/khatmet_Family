@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-cairo), ui-sans-serif, system-ui, sans-serif;
+  
+  /* Brand colors mapping */
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+  --color-emerald-800: #065f46;
+  --color-emerald-900: #064e3b;
+  
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+}
+
 :root {
   color-scheme: light;
 }
@@ -10,8 +29,9 @@
 
 body {
   margin: 0;
-  background: #f8fafc;
-  color: #0f172a;
+  background-color: #FAF9F5;
+  color: #1e293b;
+  overflow-x: hidden;
 }
 
 button,
@@ -19,4 +39,53 @@ input,
 select,
 textarea {
   font-family: inherit;
+}
+
+/* Custom premium styles */
+.bg-islamic-grid {
+  background-color: #FAF9F5;
+  background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0 L80 40 L40 80 L0 40 Z' fill='none' stroke='rgba(196,160,89,0.035)' stroke-width='1'/%3E%3Cpath d='M40 15 L65 40 L40 65 L15 40 Z' fill='none' stroke='rgba(196,160,89,0.02)' stroke-width='0.75'/%3E%3Ccircle cx='40' cy='40' r='2' fill='rgba(16,185,129,0.03)'/%3E%3C/svg%3E");
+}
+
+.bg-radial-gradient-glow {
+  background: radial-gradient(circle at 50% 50%, rgba(253, 246, 227, 0.8) 0%, rgba(250, 249, 245, 0) 70%);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 222, 210, 0.5);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.015);
+}
+
+.glass-card-emerald {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(16, 185, 129, 0.08);
+  box-shadow: 0 10px 40px rgba(4, 120, 87, 0.02);
+}
+
+.glass-card-gold {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(196, 160, 89, 0.12);
+  box-shadow: 0 10px 40px rgba(180, 83, 9, 0.02);
+}
+
+/* Beautiful custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF9F5;
+}
+::-webkit-scrollbar-thumb {
+  background: #c2c9bf;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #047857;
 }
