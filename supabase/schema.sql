@@ -13,8 +13,11 @@ create table if not exists public.families (
   owner_id uuid not null references public.profiles(id) on delete cascade,
   name text not null,
   active boolean not null default false,
-  payment_status text not null default 'pending' check (payment_status in ('pending', 'paid', 'rejected')),
+  payment_status text not null default 'pending' check (payment_status in ('pending', 'submitted', 'paid', 'rejected')),
   members_limit int not null default 30,
+  current_start_page integer not null default 1,
+  current_round integer not null default 1,
+  khatmas_completed integer not null default 0,
   created_at timestamptz not null default now()
 );
 
@@ -48,6 +51,7 @@ create table if not exists public.assignments (
   due_date date not null default current_date,
   status text not null default 'assigned' check (status in ('assigned', 'done', 'excused')),
   note text,
+  end_page integer,
   completed_at timestamptz,
   created_at timestamptz not null default now()
 );
@@ -59,7 +63,10 @@ create table if not exists public.payments (
   method text,
   reference text,
   receipt_url text,
-  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  note text,
+  rejection_reason text,
+  status text not null default 'pending' check (status in ('pending', 'submitted', 'approved', 'rejected')),
+  submitted_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -288,6 +295,93 @@ $$;
 
 grant execute on function public.get_member_portal(uuid) to anon, authenticated;
 grant execute on function public.complete_member_assignment(uuid, uuid, text, text) to anon, authenticated;
+
+create or replace function public.add_extra_ward(p_token uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_member       public.members;
+  v_plan         public.plans;
+  v_last         integer;
+  v_from         integer;
+  v_to           integer;
+  v_new_id       uuid;
+  v_member_count integer;
+begin
+  select * into v_member
+  from public.members
+  where access_token = p_token;
+
+  if not found then
+    raise exception 'Invalid member token';
+  end if;
+
+  select p.* into v_plan
+  from public.plans p
+  where p.family_id = v_member.family_id
+    and p.active = true
+  order by p.created_at desc
+  limit 1;
+
+  if v_plan.id is null then
+    raise exception 'No active plan';
+  end if;
+
+  -- Row-level lock on the family row: any concurrent call to add_extra_ward for the
+  -- same family will block here until this transaction commits, making the
+  -- MAX(end_page) read + INSERT + UPDATE a serialised critical section.
+  perform 1 from public.families where id = v_member.family_id for update;
+
+  -- Highest end_page across the whole family's current plan (safe after lock)
+  select coalesce(max(end_page), 0) into v_last
+  from public.assignments
+  where plan_id = v_plan.id;
+
+  if v_last >= 604 then
+    return jsonb_build_object('at_limit', true);
+  end if;
+
+  v_from := v_last + 1;
+  v_to   := least(v_last + 2, 604);
+
+  insert into public.assignments (plan_id, member_id, reading_text, due_date, status, end_page)
+  values (
+    v_plan.id,
+    v_member.id,
+    'من صفحة ' || v_from || ' إلى صفحة ' || v_to,
+    current_date,
+    'assigned',
+    v_to
+  )
+  returning id into v_new_id;
+
+  -- Sync current_start_page so finishCurrentWardAndCreateNew starts the next
+  -- regular batch at v_to+1 with no page gaps.
+  -- Formula: current_start_page = (v_to+1) - (member_count * 2)
+  -- Assumption: every member reads exactly 2 pages per ward (fixed level).
+  -- Revisit this formula if variable reading levels (حزب / جزء) are introduced later.
+  select count(*) into v_member_count
+  from public.members
+  where family_id = v_member.family_id;
+
+  update public.families
+  set current_start_page = greatest(v_to + 1 - (v_member_count * 2), 1)
+  where id = v_member.family_id;
+
+  return jsonb_build_object(
+    'id',           v_new_id,
+    'reading_text', 'من صفحة ' || v_from || ' إلى صفحة ' || v_to,
+    'due_date',     current_date::text,
+    'status',       'assigned',
+    'note',         null
+  );
+end;
+$$;
+
+grant execute on function public.add_extra_ward(uuid) to anon, authenticated;
 
 create index if not exists idx_families_owner_id on public.families(owner_id);
 create index if not exists idx_members_family_id on public.members(family_id);

@@ -27,6 +27,7 @@ export default function OnboardingSetupPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasFamily, setHasFamily] = useState(false);
+  const [familyActive, setFamilyActive] = useState(false);
   const [error, setError] = useState("");
 
   // Step states (1 to 4)
@@ -58,6 +59,7 @@ export default function OnboardingSetupPage() {
 
       if (familyData) {
         setHasFamily(true);
+        setFamilyActive(familyData.active ?? false);
         setFamilyName(familyData.name);
       } else {
         // Pre-fill fields from user metadata
@@ -85,8 +87,8 @@ export default function OnboardingSetupPage() {
         .insert({
           owner_id: userId,
           name: familyName,
-          payment_status: "pending",
-          active: false,
+          payment_status: "paid",
+          active: true,
         })
         .select("*")
         .single();
@@ -112,8 +114,7 @@ export default function OnboardingSetupPage() {
         }
       });
 
-      // Redirect to dashboard where pending message will show
-      router.push("/dashboard?setup_completed=true");
+      router.push("/payment-pending");
     } catch (err: any) {
       setError(err.message || "حدث خطأ أثناء حفظ البيانات، يرجى المحاولة مرة أخرى.");
       setSaving(false);
@@ -149,11 +150,11 @@ export default function OnboardingSetupPage() {
             </p>
           </div>
 
-          <Button 
-            onClick={() => router.push("/dashboard")}
+          <Button
+            onClick={() => router.push(familyActive ? "/dashboard" : "/payment-pending")}
             className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 font-bold"
           >
-            الذهاب للوحة التحكم
+            {familyActive ? "الذهاب للوحة التحكم" : "متابعة تفعيل الحساب"}
           </Button>
         </Card>
       </main>

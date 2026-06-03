@@ -12,3 +12,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+supabase/schema.sql
+supabase/migrations/001_add_payment_fields.sql
+.gitignore
+supabase/migrations/004_add_end_page_and_extra_ward.sql
+.gitignore
+supabase/migrations/003_add_khatmas_completed.sql
+supabase/migrations/002_add_families_tracking_columns.sql
+supabase/schema.sql

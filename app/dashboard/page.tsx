@@ -14,7 +14,9 @@ type Family = {
   owner_id: string;
   current_start_page: number;
   current_round: number;
-};type Member = { id: string; name: string; phone: string | null; level: string; access_token: string; family_id: string };
+  khatmas_completed: number;
+};
+type Member = { id: string; name: string; phone: string | null; level: string; access_token: string; family_id: string };
 type Plan = { id: string; name: string; start_date: string; end_date: string; type: string; method: string; active: boolean; family_id: string };
 type Assignment = {
   id: string;
@@ -28,6 +30,70 @@ type Assignment = {
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
+// ── Khatma Completion Modal ──────────────────────────────────────────────────
+
+function KhatmaCompletionModal({
+  khatmaNumber,
+  familyName,
+  onClose,
+}: {
+  khatmaNumber: number;
+  familyName: string;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      dir="rtl"
+    >
+      <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div className="h-1.5 bg-gradient-to-r from-emerald-500 to-emerald-700" />
+
+        <div className="space-y-5 p-8 text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-4 border-emerald-100 bg-emerald-50 text-4xl">
+            🕌
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-emerald-950">
+              مبروك! عيلتكم ختمت القرآن كاملاً 🤍
+            </h2>
+            <p className="text-base font-semibold text-emerald-700">
+              تقبّل الله منكم، وجعله في ميزان حسناتكم.
+            </p>
+            <p className="text-sm font-medium text-slate-400">
+              الختمة رقم {khatmaNumber} لعيلة {familyName}
+            </p>
+          </div>
+
+          <div className="border-t border-slate-100" />
+
+          <div className="rounded-2xl border border-amber-100/80 bg-amber-50 p-4 text-right">
+            <p className="text-sm font-semibold leading-relaxed text-amber-900">
+              ختمة عيلة بيتشغّل بتبرعات أهله، وجزء من كل تبرع يخرج كصدقة جارية. لو حابين تدعموا استمرار المشروع، ده اختياري تماماً.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <Link
+              href="/payment-pending"
+              className="flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-emerald-700 to-emerald-800 px-6 py-4 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:from-emerald-800 hover:to-emerald-900"
+            >
+              ادعم المشروع
+            </Link>
+            <button
+              onClick={onClose}
+              className="w-full rounded-2xl border border-slate-200 bg-white px-6 py-4 text-sm font-bold text-slate-600 transition-all duration-200 hover:bg-slate-50"
+            >
+              تمام، شكراً 🤍
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
@@ -37,13 +103,16 @@ export default function DashboardPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [familyName, setFamilyName] = useState("");
+  const [userRole, setUserRole] = useState("");
   const [memberName, setMemberName] = useState("");
   const [memberPhone, setMemberPhone] = useState("");
   const [memberLevel, setMemberLevel] = useState("صفحة يوميًا");
   const [planName, setPlanName] = useState("ورد العيلة اليومي");
   const [planType, setPlanType] = useState("توزيع بالصفحات");
   const [message, setMessage] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completedKhatmaNumber, setCompletedKhatmaNumber] = useState(0);
 
   const activePlan = plans[0] || null;
   const completedCount = assignments.filter((assignment) => assignment.status === "done").length;
@@ -73,6 +142,13 @@ export default function DashboardPage() {
         return;
       }
 
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+      if (profileData) setUserRole(profileData.role);
+
       setFamily(familyData);
       await Promise.all([loadMembers(familyData.id), loadPlans(familyData.id)]);
       setLoading(false);
@@ -80,6 +156,20 @@ export default function DashboardPage() {
 
     init();
   }, [router]);
+
+  // Auto-refresh assignments every 30 s so admin sees member updates without manual reload.
+  // To upgrade to instant push updates, replace this interval with a Supabase Realtime subscription:
+  //   supabase.channel('assignments-rt')
+  //     .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' },
+  //         () => activePlan?.id && loadAssignments(activePlan.id))
+  //     .subscribe()
+  // Requires enabling Replication for the assignments table in the Supabase Dashboard first.
+  useEffect(() => {
+    if (!activePlan?.id) return;
+    const planId = activePlan.id;
+    const timer = setInterval(() => loadAssignments(planId), 30_000);
+    return () => clearInterval(timer);
+  }, [activePlan?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadFamily(currentUserId = userId) {
   const { data: familyData } = await supabase
@@ -132,25 +222,6 @@ export default function DashboardPage() {
 
   setAssignments(normalizedAssignments);
 }
-
-  async function createFamily(event: FormEvent) {
-    event.preventDefault();
-
-    const { data, error } = await supabase.from("families").insert({
-      owner_id: userId,
-      name: familyName,
-      payment_status: "pending",
-      active: false,
-    }).select("*").single();
-
-    if (error) {
-      setMessage(error.message);
-      return;
-    }
-
-    setFamily(data);
-    setMessage("تم إنشاء مساحة العيلة. في النسخة الحقيقية أنت كمالك النظام هتفعّل الحساب من Admin Panel بعد الدفع.");
-  }
 
   async function addMember(event: FormEvent) {
     event.preventDefault();
@@ -211,7 +282,7 @@ export default function DashboardPage() {
 
   const rows = members.map((member, index) => {
     const from = startPage + index * 2;
-    const to = from + 1;
+    const to = Math.min(from + 1, 604);
 
     return {
       plan_id: planData.id,
@@ -219,6 +290,7 @@ export default function DashboardPage() {
       reading_text: `من صفحة ${from} إلى صفحة ${to}`,
       due_date: today,
       status: "assigned",
+      end_page: to,
     };
   });
 
@@ -251,41 +323,47 @@ export default function DashboardPage() {
   if (!family || !activePlan || members.length === 0) return;
 
   const today = new Date().toISOString().slice(0, 10);
+  const pagesPerWard = members.length * 2;
+  const currentStart = family.current_start_page || 1;
+  const nextStartPage = currentStart + pagesPerWard;
 
-  const nextStartPage =
-    (family.current_start_page || 1) + members.length * 2;
+  // Khatma is complete when the next ward would start past the last page of the Quran
+  const khatmaCompleted = nextStartPage > 604;
 
-  const nextRound =
-    (family.current_round || 1) + 1;
+  // New ward starts from page 1 for a fresh khatma, otherwise continues from nextStartPage
+  const newWardStart = khatmaCompleted ? 1 : nextStartPage;
 
   const rows = members.map((member, index) => {
-    const from = nextStartPage + index * 2;
-    const to = from + 1;
-
+    const from = newWardStart + index * 2;
+    const to = Math.min(from + 1, 604);
     return {
       plan_id: activePlan.id,
       member_id: member.id,
       reading_text: `من صفحة ${from} إلى صفحة ${to}`,
       due_date: today,
       status: "assigned",
+      end_page: to,
     };
   });
 
-  const { error: assignmentError } = await supabase
-    .from("assignments")
-    .insert(rows);
-
+  const { error: assignmentError } = await supabase.from("assignments").insert(rows);
   if (assignmentError) {
     setMessage(assignmentError.message);
     return;
   }
 
+  const newKhatmasCompleted = (family.khatmas_completed || 0) + 1;
+  const familyUpdate: { current_start_page: number; current_round: number; khatmas_completed?: number } = {
+    current_start_page: khatmaCompleted ? 1 : nextStartPage,
+    current_round: (family.current_round || 1) + 1,
+  };
+  if (khatmaCompleted) {
+    familyUpdate.khatmas_completed = newKhatmasCompleted;
+  }
+
   const { error: familyError } = await supabase
     .from("families")
-    .update({
-      current_start_page: nextStartPage,
-      current_round: nextRound,
-    })
+    .update(familyUpdate)
     .eq("id", family.id);
 
   if (familyError) {
@@ -294,8 +372,14 @@ export default function DashboardPage() {
   }
 
   await loadFamily();
-  setMessage("تم إنهاء الورد الحالي وإنشاء ورد جديد.");
-  setActiveTab("dashboard");
+
+  if (khatmaCompleted) {
+    setCompletedKhatmaNumber(newKhatmasCompleted);
+    setShowCompletionModal(true);
+  } else {
+    setMessage("تم إنهاء الورد الحالي وإنشاء ورد جديد.");
+    setActiveTab("dashboard");
+  }
 }
 
 
@@ -313,6 +397,9 @@ export default function DashboardPage() {
   if (loading) {
     return <main className="grid min-h-screen place-items-center bg-slate-50 p-6">جاري التحميل...</main>;
   }
+
+  // init() redirects to /setup if !family — this guard is for TypeScript narrowing only
+  if (!family) return null;
 
 const latestAssignmentsByMember = new Map<string, Assignment>();
 
@@ -390,24 +477,51 @@ function WardShareCard({
   );
 }
 
-  if (!family) {
-    return (
-      <main className="grid min-h-screen place-items-center bg-emerald-50 p-6">
-        <Card className="w-full max-w-xl">
-          <h1 className="text-3xl font-black">إنشاء مساحة العيلة</h1>
-          <p className="mt-2 text-slate-600">ابدأ بإنشاء مساحة خاصة بعيلتك. بعدها تقدر تضيف أفراد وتعمل ورد.</p>
-          <form onSubmit={createFamily} className="mt-6 space-y-4">
-            <Input label="اسم العيلة" value={familyName} onChange={setFamilyName} placeholder="مثال: عيلة الحاج محمود" required />
-            <Button type="submit" className="w-full">إنشاء المساحة</Button>
-          </form>
-          {message && <div className="mt-4 rounded-2xl bg-emerald-50 p-3 text-sm font-bold text-emerald-700">{message}</div>}
-        </Card>
-      </main>
-    );
-  }
+  const tabs: [string, string, string][] = [
+    ["dashboard", "الرئيسية", "⌂"],
+    ["members", "أفراد", "👥"],
+    ["plans", "الختمات", "▣"],
+    ["tracking", "المتابعة", "▤"],
+    ["messages", "الرسائل", "✉"],
+  ];
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
+
+      {/* ── Mobile top header ───────────────────────────────────────────── */}
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
+        <p className="text-sm font-semibold text-slate-500">{family.name}</p>
+        <p className="text-lg font-black text-emerald-900">ختمة عيلة</p>
+        <div className="relative">
+          <button
+            onClick={() => setMobileMenuOpen((o) => !o)}
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100"
+            aria-label="القائمة"
+          >
+            <span className="text-xl leading-none">⋮</span>
+          </button>
+          {mobileMenuOpen && (
+            <div className="absolute left-0 top-full mt-1 w-44 rounded-2xl border border-slate-200 bg-white py-2 shadow-lg">
+              {userRole === "super_admin" && (
+                <Link
+                  href="/admin"
+                  className="block px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Admin Panel
+                </Link>
+              )}
+              <button
+                onClick={() => { setMobileMenuOpen(false); logout(); }}
+                className="block w-full px-4 py-2.5 text-right text-sm font-bold text-rose-600 hover:bg-rose-50"
+              >
+                تسجيل الخروج
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
+
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
         <aside className="hidden border-l border-slate-200 bg-white p-5 lg:block">
           <div className="mb-8">
@@ -425,7 +539,7 @@ function WardShareCard({
               ["plans", "الختمات والأوراد", "▣"],
               ["tracking", "المتابعة", "▤"],
               ["messages", "الرسائل", "✉"],
-            ].map(([key, label, icon]) => (
+            ].map(([key, label, icon]: string[]) => (
               <button
                 key={key}
                 type="button"
@@ -438,12 +552,14 @@ function WardShareCard({
           </nav>
 
           <div className="mt-8 space-y-2">
-            <Link href="/admin" className="block rounded-2xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700">Admin Panel</Link>
+            {userRole === "super_admin" && (
+              <Link href="/admin" className="block rounded-2xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700">Admin Panel</Link>
+            )}
             <Button variant="ghost" onClick={logout} className="w-full">تسجيل الخروج</Button>
           </div>
         </aside>
 
-        <section className="p-4 lg:p-8">
+        <section className="p-4 pb-24 lg:p-8 lg:pb-8">
           <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 className="text-2xl font-black lg:text-3xl">لوحة التحكم</h1>
@@ -718,7 +834,33 @@ function WardShareCard({
           )}
         </section>
       </div>
+
+      {/* ── Khatma Completion Modal ──────────────────────────────────────── */}
+      {showCompletionModal && (
+        <KhatmaCompletionModal
+          khatmaNumber={completedKhatmaNumber}
+          familyName={family.name}
+          onClose={() => setShowCompletionModal(false)}
+        />
+      )}
+
+      {/* ── Mobile bottom tab bar ────────────────────────────────────────── */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-slate-200 bg-white lg:hidden" dir="rtl">
+        {tabs.map(([key, label, icon]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setActiveTab(key)}
+            className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-bold transition ${
+              activeTab === key ? "text-emerald-700" : "text-slate-400"
+            }`}
+          >
+            <span className="text-lg leading-none">{icon}</span>
+            <span>{label}</span>
+          </button>
+        ))}
+      </nav>
+
     </main>
-    
   );
 }

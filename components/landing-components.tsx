@@ -66,8 +66,8 @@ export function Navbar() {
 
           {/* Left: Desktop CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <a 
-              href="#login" 
+            <a
+              href="/login"
               className="rounded-2xl px-5 py-2.5 text-sm font-bold text-emerald-800 hover:bg-emerald-50 border border-emerald-100 transition-all duration-200"
             >
               دخول المسؤول
@@ -109,8 +109,8 @@ export function Navbar() {
             ))}
             <hr className="my-2 border-slate-100" />
             <div className="grid grid-cols-2 gap-3 mt-2">
-              <a 
-                href="#login" 
+              <a
+                href="/login"
                 onClick={() => setIsOpen(false)}
                 className="rounded-xl border border-emerald-100 px-4 py-3 text-center text-sm font-bold text-emerald-800 hover:bg-emerald-50 transition"
               >
