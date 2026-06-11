@@ -1,11 +1,14 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toPng } from "html-to-image";
 import { supabase } from "@/lib/supabase";
 import { Button, Card, Input, MiniInfo, Progress, Select, StatusPill } from "@/components/ui";
+import { StatsBar } from "@/components/StatsBar";
+import { KhatmaGrid } from "@/components/KhatmaGrid";
+import { MemberCards } from "@/components/MemberCards";
+import { WardShareCard } from "@/components/WardShareCard";
 
 type Family = {
   id: string;
@@ -16,11 +19,13 @@ type Family = {
   current_start_page: number;
   current_round: number;
   khatmas_completed: number;
+  last_ward_date: string | null;
 };
 type Member = { id: string; name: string; phone: string | null; level: string; access_token: string; family_id: string };
 type Plan = { id: string; name: string; start_date: string; end_date: string; type: string; method: string; active: boolean; family_id: string };
 type Assignment = {
   id: string;
+  member_id?: string;
   start_page?: number | null;
   end_page?: number | null;
   reading_text: string;
@@ -101,132 +106,7 @@ function KhatmaCompletionModal({
 // Displays today's ward as a shareable card. "حفظ كصورة" uses html-to-image
 // (RTL-safe, Tailwind-compatible) to export the card as a PNG.
 
-function formatPagesShort(
-  start: number | null | undefined,
-  end: number | null | undefined,
-  fallback: string
-): string {
-  if (start == null || end == null) return fallback;
-  if (start === end) return `صفحة ${start}`;
-  return `صفحة ${start}–${end}`;
-}
-
-function WardShareCard({
-  familyName,
-  planName,
-  assignments,
-}: {
-  familyName: string;
-  planName: string;
-  assignments: Assignment[];
-}) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const today = new Date().toLocaleDateString("ar-SA", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
-  async function saveAsImage() {
-    if (!cardRef.current) return;
-    try {
-      const dataUrl = await toPng(cardRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        style: { direction: "rtl" },
-      });
-
-      // Try Web Share API first (mobile)
-      const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], `ورد-${familyName}.png`, { type: "image/png" });
-      if (
-        typeof navigator !== "undefined" &&
-        navigator.share &&
-        navigator.canShare({ files: [file] })
-      ) {
-        await navigator.share({ title: `ورد ${familyName}`, files: [file] });
-        return;
-      }
-
-      // Fallback: download
-      const link = document.createElement("a");
-      link.download = `ورد-${familyName}.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch {
-      // Silent — user may have dismissed the share sheet
-    }
-  }
-
-  return (
-    <div className="space-y-3">
-      {/* Capturable card */}
-      <div ref={cardRef} dir="rtl">
-        <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 p-6 text-white">
-          {/* Header */}
-          <div className="mb-5 text-center">
-            <p className="text-xs font-bold tracking-widest text-emerald-200 uppercase">
-              ختمة عيلة
-            </p>
-            <h2 className="mt-1 text-2xl font-black">ورد {familyName}</h2>
-            <p className="mt-1 text-sm text-emerald-200">{planName}</p>
-            <p className="mt-2 rounded-xl bg-white/10 px-3 py-1 text-xs font-semibold text-emerald-100 inline-block">
-              {today}
-            </p>
-          </div>
-
-          {/* Member rows */}
-          <div className="space-y-2">
-            {assignments.map((assignment) => (
-              <div
-                key={assignment.id}
-                className="flex items-center justify-between gap-3 rounded-2xl bg-white/10 px-4 py-3"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="font-black text-white">
-                    {assignment.members?.name || "—"}
-                  </p>
-                  <p className="mt-0.5 text-sm text-emerald-200">
-                    {formatPagesShort(
-                      assignment.start_page,
-                      assignment.end_page,
-                      assignment.reading_text
-                    )}
-                  </p>
-                </div>
-                <span
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${
-                    assignment.status === "done"
-                      ? "bg-emerald-300 text-emerald-950"
-                      : assignment.status === "excused"
-                      ? "bg-amber-200 text-amber-950"
-                      : "bg-white/20 text-white"
-                  }`}
-                >
-                  {assignment.status === "done"
-                    ? "✓ قرأ"
-                    : assignment.status === "excused"
-                    ? "اعتذر"
-                    : "لم يقرأ"}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <p className="mt-5 text-center text-[10px] text-emerald-300">
-            شارك هذه الصورة مع جروب واتساب العيلة
-          </p>
-        </div>
-      </div>
-
-      {/* Action buttons */}
-      <Button onClick={saveAsImage} className="w-full">
-        📸 حفظ كصورة ومشاركة
-      </Button>
-    </div>
-  );
-}
+// Inline WardShareCard removed - imported from components/WardShareCard.tsx instead.
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -253,6 +133,18 @@ export default function DashboardPage() {
   const excusedCount = assignments.filter((assignment) => assignment.status === "excused").length;
   const delayedCount = Math.max(0, assignments.length - completedCount - excusedCount);
   const progress = Math.round((completedCount / Math.max(assignments.length, 1)) * 100);
+  
+  const overallProgress = Math.round((completedCount / 604) * 100);
+  let encourageMessage = "";
+  if (overallProgress < 25) {
+    encourageMessage = "بداية موفقة، بارك الله في عيلتكم 🤍";
+  } else if (overallProgress >= 25 && overallProgress < 50) {
+    encourageMessage = "في المنتصف، ربنا يتمم عليكم ويتقبل منكم 🙌";
+  } else if (overallProgress >= 50 && overallProgress <= 75) {
+    encourageMessage = "أكثر من النص، ربنا يكمّل همّتكم بالخير ✨";
+  } else {
+    encourageMessage = "قاربتم على الختم، بشراكم وعقبال الختمات الجاية 🎉";
+  }
 
   useEffect(() => {
     async function init() {
@@ -338,7 +230,7 @@ export default function DashboardPage() {
   async function loadAssignments(planId: string) {
   const { data } = await supabase
     .from("assignments")
-    .select("id, start_page, end_page, reading_text, due_date, status, note, completed_at, members(name, phone, access_token)")
+    .select("id, member_id, start_page, end_page, reading_text, due_date, status, note, completed_at, members(name, phone, access_token)")
     .eq("plan_id", planId)
     .order("created_at", { ascending: true });
 
@@ -679,110 +571,68 @@ const sortedAssignments = [...assignments].sort((a, b) => {
           </header>
 
           {activeTab === "dashboard" && (
-  <div className="space-y-6">
-    <div className="grid gap-4 md:grid-cols-4">
-      <Card>
-        <p className="text-sm text-slate-500">أفراد العيلة</p>
-        <p className="mt-2 text-3xl font-black">{members.length}</p>
-      </Card>
+            <div className="space-y-6 animate-fade-in" dir="rtl">
+              {/* Premium Khatma Header */}
+              <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm glass-card-emerald overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-48 h-48 opacity-5 pointer-events-none bg-[radial-gradient(circle_at_top_right,#10b981_0%,transparent_70%)]" />
+                
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 relative z-10">
+                  <div className="space-y-2">
+                    <h2 className="text-xl sm:text-2xl font-black text-emerald-950">
+                      عائلة {family.name}
+                    </h2>
+                    <p className="text-sm sm:text-base font-bold text-emerald-800">
+                      الختمة الحالية: <span className="font-black">{activePlan?.name || "لم تبدأ بعد"}</span>
+                    </p>
+                    {activePlan && (
+                      <p className="text-[10px] sm:text-xs font-bold text-emerald-700/90 bg-emerald-100/50 border border-emerald-200/40 px-3 py-1 rounded-full inline-flex items-center gap-1 shadow-sm">
+                        <span></span>
+                        <span>{encourageMessage}</span>
+                      </p>
+                    )}
+                  </div>
 
-      <Card>
-        <p className="text-sm text-slate-500">الختمة الحالية</p>
-        <p className="mt-2 text-2xl font-black">
-          {activePlan?.name || "لم تبدأ بعد"}
-        </p>
-      </Card>
+                  <Button
+                    onClick={finishCurrentWardAndCreateNew}
+                    disabled={!activePlan || members.length === 0}
+                    className="w-full sm:w-auto shadow-sm shadow-emerald-900/10 font-black text-xs sm:text-sm"
+                  >
+                    إنهاء الورد وإنشاء ورد جديد
+                  </Button>
+                </div>
 
-      <Card>
-        <p className="text-sm text-slate-500">إنجاز الورد الحالي</p>
-        <p className="mt-2 text-3xl font-black">{progress}%</p>
-      </Card>
+                {activePlan && (
+                  <div className="mt-5 space-y-2 relative z-10 border-t border-slate-100 pt-4">
+                    <div className="flex items-center justify-between text-[10px] sm:text-xs font-bold text-slate-600">
+                      <span>نسبة الإنجاز الكلي للختمة</span>
+                      <span className="text-emerald-800 font-extrabold">{overallProgress}% ({completedCount} من 604 صفحة)</span>
+                    </div>
+                    <Progress value={overallProgress} />
+                  </div>
+                )}
+              </div>
 
-      <Card>
-        <p className="text-sm text-slate-500">لم يقرأوا بعد</p>
-        <p className="mt-2 text-3xl font-black">{delayedCount}</p>
-      </Card>
-    </div>
+              {/* Stats Bar */}
+              <StatsBar assignments={assignments} khatmasCompleted={family.khatmas_completed} totalMembers={members.length} />
 
-    <Card>
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-black">الورد الحالي للأفراد</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            الأشخاص الذين لم يقرأوا يظهرون في أول الجدول.
-          </p>
-        </div>
+              {/* Khatma Quran Map Grid */}
+              <KhatmaGrid assignments={assignments} />
 
-        <Button
-          onClick={finishCurrentWardAndCreateNew}
-          disabled={!activePlan || members.length === 0}
-        >
-          إنهاء الورد وإنشاء ورد جديد
-        </Button>
-      </div>
+              {/* Members Current Wards Cards Grid */}
+              <MemberCards 
+                members={members} 
+                assignments={assignments} 
+                onUpdateAssignmentStatus={updateAssignment} 
+              />
 
-      <Progress value={progress} />
-
-      <div className="mt-6 overflow-auto rounded-2xl border border-slate-200">
-        <table className="w-full min-w-[760px] text-right text-sm">
-          <thead className="bg-slate-50 text-slate-500">
-            <tr>
-              <th className="p-3">الفرد</th>
-              <th className="p-3">الورد الحالي</th>
-              <th className="p-3">الحالة</th>
-              <th className="p-3">إجراء</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {sortedAssignments.map((assignment) => (
-              <tr key={assignment.id} className="border-t border-slate-100">
-                <td className="p-3 font-bold">
-                  {assignment.members?.name || "—"}
-                </td>
-
-                <td className="p-3">
-                  {assignment.reading_text}
-                </td>
-
-                <td className="p-3">
-                  <StatusPill status={assignment.status} />
-                </td>
-
-                <td className="p-3">
-                  {assignment.status === "assigned" ? (
-                    <Button
-                      variant="secondary"
-                      onClick={() => updateAssignment(assignment.id, "done")}
-                    >
-                      تسجيل كتم
-                    </Button>
-                  ) : (
-                    <span className="text-sm text-slate-400">تم</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-
-            {sortedAssignments.length === 0 && (
-              <tr>
-                <td className="p-6 text-center text-slate-500" colSpan={4}>
-                  لا يوجد ورد حالي. أضف أفراد العيلة ثم أنشئ الختمة.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </Card>
-
-    <WardShareCard
-      familyName={family.name}
-      planName={activePlan?.name || "الختمة الحالية"}
-      assignments={sortedAssignments}
-    />
-  </div>
-)}
+              {/* Ward Share Card */}
+              <WardShareCard 
+                familyName={family.name} 
+                planName={activePlan?.name || "الختمة الحالية"} 
+                assignments={assignments} 
+              />
+            </div>
+          )}
 
           {activeTab === "members" && (
             <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
