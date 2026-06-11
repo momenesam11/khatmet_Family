@@ -552,9 +552,9 @@ function InfoRow({
   mono?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm">
+    <div className="flex flex-col gap-1 rounded-xl bg-slate-50 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3">
       <span className="font-bold text-slate-700">{label}</span>
-      <span className={mono ? "font-mono text-xs text-slate-500" : "text-slate-500"}>{value}</span>
+      <span className={`${mono ? "font-mono text-xs text-slate-500 break-all" : "text-slate-500"} sm:text-left`}>{value}</span>
     </div>
   );
 }

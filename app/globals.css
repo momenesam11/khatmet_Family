@@ -32,6 +32,22 @@ body {
   background-color: #FAF9F5;
   color: #1e293b;
   overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Safe area for notched phones + fixed bottom nav */
+.pb-safe {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 1024px) {
+  .pb-safe {
+    padding-bottom: 2rem;
+  }
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 button,

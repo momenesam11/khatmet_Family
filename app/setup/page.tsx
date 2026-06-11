@@ -172,14 +172,14 @@ export default function OnboardingSetupPage() {
 
   return (
     <main className="grid min-h-screen place-items-center bg-islamic-grid p-4 sm:p-6 font-sans antialiased text-right">
-      <Card className="w-full max-w-2xl glass-card border border-slate-200/60 shadow-xl p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between min-h-[500px]">
+      <Card className="w-full max-w-2xl glass-card border border-slate-200/60 shadow-xl p-5 sm:p-8 relative overflow-hidden flex flex-col justify-between min-h-0 sm:min-h-[500px]">
         {/* Soft decorative visual */}
         <div className="absolute -left-12 -top-12 h-32 w-32 rounded-full bg-emerald-500/5 blur-xl pointer-events-none" />
 
         {/* Top Progress bar and steps */}
         <div>
-          <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
-            <span className="text-xs font-black text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-6 pb-4 border-b border-slate-100">
+            <span className="self-start text-xs font-black text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
               الخطوة {step} من 4
             </span>
             <div className="flex items-center gap-2">
@@ -339,7 +339,7 @@ export default function OnboardingSetupPage() {
         </div>
 
         {/* Dynamic CTAs Bottom bar */}
-        <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+        <div className="mt-8 pt-4 border-t border-slate-100 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
           {/* Back button */}
           {step > 1 ? (
             <button
@@ -365,7 +365,7 @@ export default function OnboardingSetupPage() {
                 }
                 setStep(step + 1);
               }}
-              className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow shadow-emerald-950/5 active:scale-95"
+              className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow shadow-emerald-950/5 active:scale-95"
             >
               <span>التالي</span>
               <ArrowLeft className="h-4 w-4" />
@@ -374,7 +374,7 @@ export default function OnboardingSetupPage() {
             <button
               onClick={handleSubmitOnboarding}
               disabled={saving}
-              className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow shadow-emerald-950/15 active:scale-95 disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow shadow-emerald-950/15 active:scale-95 disabled:opacity-50"
             >
               {saving ? (
                 <>

@@ -127,7 +127,7 @@ export function MemberCards({ members, assignments, onUpdateAssignmentStatus }: 
     <div className="space-y-4" dir="rtl">
       <h3 className="text-lg font-black text-slate-900">الورد الحالي لأفراد العائلة</h3>
       
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {processedMembers.map(({ member, currentAssignment, statusLabel, pillClass, statusKey, lastReadText }) => (
           <div
             key={member.id}

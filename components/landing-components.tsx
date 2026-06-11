@@ -39,15 +39,15 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 glass-card border-b border-amber-900/5 bg-white/80 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-20 items-center justify-between">
+        <div className="flex h-16 items-center justify-between sm:h-20">
           {/* Right: Brand Logo */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 shadow-md shadow-emerald-900/10">
-              <BookOpen className="h-6 w-6 text-amber-100" />
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 shadow-md shadow-emerald-900/10 sm:h-11 sm:w-11 sm:rounded-2xl">
+              <BookOpen className="h-5 w-5 text-amber-100 sm:h-6 sm:w-6" />
             </div>
-            <div>
-              <span className="text-xl font-black tracking-tight text-emerald-900 font-sans">ختمة عيلة</span>
-              <span className="mr-2 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">خدمة عائلية</span>
+            <div className="min-w-0">
+              <span className="text-base font-black tracking-tight text-emerald-900 font-sans sm:text-xl">ختمة عيلة</span>
+              <span className="mr-1.5 hidden text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 min-[400px]:inline sm:mr-2">خدمة عائلية</span>
             </div>
           </div>
 
@@ -95,7 +95,9 @@ export function Navbar() {
 
       {/* Mobile Drawer */}
       {isOpen && (
-        <div className="md:hidden border-t border-slate-100 bg-white px-4 py-6 shadow-xl animate-in fade-in slide-in-from-top-4 duration-200">
+        <>
+        <div className="fixed inset-0 z-40 bg-black/20 md:hidden" onClick={() => setIsOpen(false)} aria-hidden="true" />
+        <div className="relative z-50 md:hidden border-t border-slate-100 bg-white px-4 py-6 shadow-xl">
           <div className="flex flex-col gap-4 text-center">
             {navLinks.map((link) => (
               <a
@@ -126,6 +128,7 @@ export function Navbar() {
             </div>
           </div>
         </div>
+        </>
       )}
     </nav>
   );
@@ -247,18 +250,18 @@ export function DashboardMockup({ className = "" }: { className?: string }) {
             <div 
               key={member.name} 
               onClick={() => toggleMemberStatus(index)}
-              className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white p-3 hover:border-emerald-200 hover:shadow-sm transition-all duration-200 cursor-pointer"
+              className="flex flex-col gap-2 rounded-2xl border border-slate-100 bg-white p-3 hover:border-emerald-200 hover:shadow-sm transition-all duration-200 cursor-pointer sm:flex-row sm:items-center sm:justify-between"
             >
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 font-black text-emerald-800 border border-emerald-100">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 font-black text-emerald-800 border border-emerald-100">
                   {member.name[0]}
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-800">{member.name}</p>
-                  <p className="text-[11px] text-slate-400 font-medium">{member.range}</p>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-slate-800">{member.name}</p>
+                  <p className="truncate text-[11px] text-slate-400 font-medium">{member.range}</p>
                 </div>
               </div>
-              {getStatusBadge(member.status)}
+              <div className="self-start sm:self-auto">{getStatusBadge(member.status)}</div>
             </div>
           ))}
         </div>
@@ -423,7 +426,7 @@ export function FAQSection() {
     <section id="faq" className="mx-auto max-w-4xl px-4 py-20 sm:px-6 lg:px-8">
       <div className="text-center space-y-3 mb-12">
         <span className="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">الإجابات المباشرة</span>
-        <h2 className="text-3xl font-black text-slate-800">الأسئلة الشائعة</h2>
+        <h2 className="text-2xl font-black text-slate-800 sm:text-3xl">الأسئلة الشائعة</h2>
         <p className="text-slate-500 max-w-xl mx-auto text-sm">كل ما تود معرفته عن طريقة عمل ختمة عيلة والاشتراك الرمزي.</p>
       </div>
 
@@ -437,16 +440,16 @@ export function FAQSection() {
             >
               <button
                 onClick={() => setOpenIndex(isOpen ? null : index)}
-                className="w-full px-6 py-4 flex items-center justify-between text-right font-bold text-slate-800 hover:text-emerald-700 transition"
+                className="w-full px-4 py-4 sm:px-6 flex items-center justify-between gap-3 text-right font-bold text-slate-800 hover:text-emerald-700 transition"
               >
-                <span className="text-base font-sans">{faq.q}</span>
+                <span className="text-sm font-sans sm:text-base">{faq.q}</span>
                 <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform duration-300 ${isOpen ? "transform rotate-180 text-emerald-600" : ""}`} />
               </button>
               
               <div 
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-40 border-t border-slate-100" : "max-h-0"}`}
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-96 border-t border-slate-100" : "max-h-0"}`}
               >
-                <div className="px-6 py-4 text-sm leading-relaxed text-slate-600 font-medium">
+                <div className="px-4 py-4 sm:px-6 text-sm leading-relaxed text-slate-600 font-medium">
                   {faq.a}
                 </div>
               </div>

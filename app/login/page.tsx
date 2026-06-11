@@ -46,7 +46,7 @@ function LoginForm() {
         → رجوع
       </Link>
 
-      <h1 className="text-3xl font-black">تسجيل الدخول</h1>
+      <h1 className="text-2xl font-black sm:text-3xl">تسجيل الدخول</h1>
       <p className="mt-2 text-slate-600">ادخل على لوحة تحكم العيلة.</p>
 
       {signupSuccess && (
@@ -81,7 +81,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="grid min-h-screen place-items-center bg-emerald-50 p-6" dir="rtl">
+    <main className="grid min-h-screen place-items-center bg-emerald-50 p-4 sm:p-6" dir="rtl">
       <Suspense fallback={<div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-700" />}>
         <LoginForm />
       </Suspense>
