@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toPng } from "html-to-image";
 import { supabase } from "@/lib/supabase";
 import { Button, Card, Input, MiniInfo, Progress, Select, StatusPill } from "@/components/ui";
 
@@ -20,6 +21,8 @@ type Member = { id: string; name: string; phone: string | null; level: string; a
 type Plan = { id: string; name: string; start_date: string; end_date: string; type: string; method: string; active: boolean; family_id: string };
 type Assignment = {
   id: string;
+  start_page?: number | null;
+  end_page?: number | null;
   reading_text: string;
   due_date: string;
   status: string;
@@ -90,6 +93,137 @@ function KhatmaCompletionModal({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── WardShareCard ────────────────────────────────────────────────────────────
+// Displays today's ward as a shareable card. "حفظ كصورة" uses html-to-image
+// (RTL-safe, Tailwind-compatible) to export the card as a PNG.
+
+function formatPagesShort(
+  start: number | null | undefined,
+  end: number | null | undefined,
+  fallback: string
+): string {
+  if (start == null || end == null) return fallback;
+  if (start === end) return `صفحة ${start}`;
+  return `صفحة ${start}–${end}`;
+}
+
+function WardShareCard({
+  familyName,
+  planName,
+  assignments,
+}: {
+  familyName: string;
+  planName: string;
+  assignments: Assignment[];
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const today = new Date().toLocaleDateString("ar-SA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  async function saveAsImage() {
+    if (!cardRef.current) return;
+    try {
+      const dataUrl = await toPng(cardRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        style: { direction: "rtl" },
+      });
+
+      // Try Web Share API first (mobile)
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `ورد-${familyName}.png`, { type: "image/png" });
+      if (
+        typeof navigator !== "undefined" &&
+        navigator.share &&
+        navigator.canShare({ files: [file] })
+      ) {
+        await navigator.share({ title: `ورد ${familyName}`, files: [file] });
+        return;
+      }
+
+      // Fallback: download
+      const link = document.createElement("a");
+      link.download = `ورد-${familyName}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch {
+      // Silent — user may have dismissed the share sheet
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Capturable card */}
+      <div ref={cardRef} dir="rtl">
+        <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 p-6 text-white">
+          {/* Header */}
+          <div className="mb-5 text-center">
+            <p className="text-xs font-bold tracking-widest text-emerald-200 uppercase">
+              ختمة عيلة
+            </p>
+            <h2 className="mt-1 text-2xl font-black">ورد {familyName}</h2>
+            <p className="mt-1 text-sm text-emerald-200">{planName}</p>
+            <p className="mt-2 rounded-xl bg-white/10 px-3 py-1 text-xs font-semibold text-emerald-100 inline-block">
+              {today}
+            </p>
+          </div>
+
+          {/* Member rows */}
+          <div className="space-y-2">
+            {assignments.map((assignment) => (
+              <div
+                key={assignment.id}
+                className="flex items-center justify-between gap-3 rounded-2xl bg-white/10 px-4 py-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-black text-white">
+                    {assignment.members?.name || "—"}
+                  </p>
+                  <p className="mt-0.5 text-sm text-emerald-200">
+                    {formatPagesShort(
+                      assignment.start_page,
+                      assignment.end_page,
+                      assignment.reading_text
+                    )}
+                  </p>
+                </div>
+                <span
+                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${
+                    assignment.status === "done"
+                      ? "bg-emerald-300 text-emerald-950"
+                      : assignment.status === "excused"
+                      ? "bg-amber-200 text-amber-950"
+                      : "bg-white/20 text-white"
+                  }`}
+                >
+                  {assignment.status === "done"
+                    ? "✓ قرأ"
+                    : assignment.status === "excused"
+                    ? "اعتذر"
+                    : "لم يقرأ"}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-5 text-center text-[10px] text-emerald-300">
+            شارك هذه الصورة مع جروب واتساب العيلة
+          </p>
+        </div>
+      </div>
+
+      {/* Action buttons */}
+      <Button onClick={saveAsImage} className="w-full">
+        📸 حفظ كصورة ومشاركة
+      </Button>
     </div>
   );
 }
@@ -204,7 +338,7 @@ export default function DashboardPage() {
   async function loadAssignments(planId: string) {
   const { data } = await supabase
     .from("assignments")
-    .select("id, reading_text, due_date, status, note, completed_at, members(name, phone, access_token)")
+    .select("id, start_page, end_page, reading_text, due_date, status, note, completed_at, members(name, phone, access_token)")
     .eq("plan_id", planId)
     .order("created_at", { ascending: true });
 
@@ -281,15 +415,16 @@ export default function DashboardPage() {
   const startPage = family.current_start_page || 1;
 
   const rows = members.map((member, index) => {
-    const from = startPage + index * 2;
-    const to = Math.min(from + 1, 604);
+    const from = startPage + index;
+    const to = from;
 
     return {
       plan_id: planData.id,
       member_id: member.id,
-      reading_text: `من صفحة ${from} إلى صفحة ${to}`,
+      reading_text: `صفحة ${from}`,
       due_date: today,
       status: "assigned",
+      start_page: from,
       end_page: to,
     };
   });
@@ -302,6 +437,13 @@ export default function DashboardPage() {
     setMessage(assignmentError.message);
     return;
   }
+
+  // Set last_ward_date so the lazy transition in get_member_portal
+  // does not create a duplicate ward if a member opens their portal today.
+  await supabase
+    .from("families")
+    .update({ last_ward_date: today })
+    .eq("id", family.id);
 
   await loadPlans(family.id);
   setActiveTab("tracking");
@@ -323,63 +465,92 @@ export default function DashboardPage() {
   if (!family || !activePlan || members.length === 0) return;
 
   const today = new Date().toISOString().slice(0, 10);
-  const pagesPerWard = members.length * 2;
+  const pagesPerWard = members.length;
   const currentStart = family.current_start_page || 1;
+  // nextStartPage = start of the new ward (current_start_page + pagesPerWard)
   const nextStartPage = currentStart + pagesPerWard;
 
-  // Khatma is complete when the next ward would start past the last page of the Quran
-  const khatmaCompleted = nextStartPage > 604;
+  // ── Past page 604: check if all pages are truly done ──────────────────────
+  if (nextStartPage > 604) {
+    // Count excused assignments (confirmed unread)
+    const { count: excusedCount } = await supabase
+      .from("assignments")
+      .select("id", { count: "exact", head: true })
+      .eq("plan_id", activePlan.id)
+      .eq("status", "excused");
 
-  // New ward starts from page 1 for a fresh khatma, otherwise continues from nextStartPage
-  const newWardStart = khatmaCompleted ? 1 : nextStartPage;
+    // Count stale-assigned from previous wards (member missed their ward)
+    const { count: staleCount } = await supabase
+      .from("assignments")
+      .select("id", { count: "exact", head: true })
+      .eq("plan_id", activePlan.id)
+      .eq("status", "assigned")
+      .lt("due_date", today);
 
+    const undoneCount = (excusedCount ?? 0) + (staleCount ?? 0);
+
+    if (undoneCount > 0) {
+      // Some pages were not read — khatma not yet complete.
+      // Unread pages are available to any volunteer via "أزيد وردي".
+      setMessage(
+        `لم تكتمل الختمة بعد — ${undoneCount} صفحة لم تُقرأ. يمكن لأي عضو المطالبة بها عبر "أزيد وردي".`
+      );
+      return;
+    }
+
+    // ── TRUE khatma completion ────────────────────────────────────────────
+    const newKhatmasCompleted = (family.khatmas_completed || 0) + 1;
+
+    const { error: familyError } = await supabase
+      .from("families")
+      .update({
+        current_start_page: 1,
+        current_round: 1,
+        khatmas_completed: newKhatmasCompleted,
+        last_ward_date: null, // Reset so lazy transition starts fresh next khatma
+      })
+      .eq("id", family.id);
+
+    if (familyError) { setMessage(familyError.message); return; }
+
+    await loadFamily();
+    setCompletedKhatmaNumber(newKhatmasCompleted);
+    setShowCompletionModal(true);
+    return;
+  }
+
+  // ── Normal case: create next ward ─────────────────────────────────────────
   const rows = members.map((member, index) => {
-    const from = newWardStart + index * 2;
-    const to = Math.min(from + 1, 604);
+    const from = nextStartPage + index;
+    const to = from;
     return {
       plan_id: activePlan.id,
       member_id: member.id,
-      reading_text: `من صفحة ${from} إلى صفحة ${to}`,
+      reading_text: `صفحة ${from}`,
       due_date: today,
       status: "assigned",
+      start_page: from,
       end_page: to,
     };
   });
 
   const { error: assignmentError } = await supabase.from("assignments").insert(rows);
-  if (assignmentError) {
-    setMessage(assignmentError.message);
-    return;
-  }
-
-  const newKhatmasCompleted = (family.khatmas_completed || 0) + 1;
-  const familyUpdate: { current_start_page: number; current_round: number; khatmas_completed?: number } = {
-    current_start_page: khatmaCompleted ? 1 : nextStartPage,
-    current_round: (family.current_round || 1) + 1,
-  };
-  if (khatmaCompleted) {
-    familyUpdate.khatmas_completed = newKhatmasCompleted;
-  }
+  if (assignmentError) { setMessage(assignmentError.message); return; }
 
   const { error: familyError } = await supabase
     .from("families")
-    .update(familyUpdate)
+    .update({
+      current_start_page: nextStartPage,
+      current_round: (family.current_round || 1) + 1,
+      last_ward_date: today,
+    })
     .eq("id", family.id);
 
-  if (familyError) {
-    setMessage(familyError.message);
-    return;
-  }
+  if (familyError) { setMessage(familyError.message); return; }
 
   await loadFamily();
-
-  if (khatmaCompleted) {
-    setCompletedKhatmaNumber(newKhatmasCompleted);
-    setShowCompletionModal(true);
-  } else {
-    setMessage("تم إنهاء الورد الحالي وإنشاء ورد جديد.");
-    setActiveTab("dashboard");
-  }
+  setMessage("تم إنهاء الورد الحالي وإنشاء ورد جديد.");
+  setActiveTab("dashboard");
 }
 
 
@@ -415,67 +586,6 @@ const sortedAssignments = [...assignments].sort((a, b) => {
   return 0;
 });
 
-function WardShareCard({
-  familyName,
-  planName,
-  assignments,
-}: {
-  familyName: string;
-  planName: string;
-  assignments: Assignment[];
-}) {
-  return (
-    <Card className="overflow-hidden bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 p-0 text-white">
-      <div className="p-8">
-        <div className="mb-6 text-center">
-          <p className="text-sm font-bold text-emerald-100">
-            ختمة عيلة
-          </p>
-          <h2 className="mt-2 text-3xl font-black">
-            ورد {familyName}
-          </h2>
-          <p className="mt-2 text-emerald-100">
-            {planName}
-          </p>
-        </div>
-
-        <div className="grid gap-3 md:grid-cols-2">
-          {assignments.map((assignment) => (
-            <div
-              key={assignment.id}
-              className="rounded-2xl bg-white/10 p-4 backdrop-blur"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-lg font-black">
-                    {assignment.members?.name || "—"}
-                  </p>
-                  <p className="mt-1 text-sm text-emerald-100">
-                    {assignment.reading_text}
-                  </p>
-                </div>
-
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-bold ${
-                    assignment.status === "done"
-                      ? "bg-emerald-300 text-emerald-950"
-                      : "bg-amber-200 text-amber-950"
-                  }`}
-                >
-                  {assignment.status === "done" ? "قرأ" : "لم يقرأ"}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <p className="mt-6 text-center text-xs text-emerald-100">
-          يمكن حفظ هذه الصورة ومشاركتها مع جروب واتساب العيلة.
-        </p>
-      </div>
-    </Card>
-  );
-}
 
   const tabs: [string, string, string][] = [
     ["dashboard", "الرئيسية", "⌂"],

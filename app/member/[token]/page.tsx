@@ -7,10 +7,13 @@ import { Button, Card, StatusPill } from "@/components/ui";
 
 type Assignment = {
   id: string;
+  start_page: number | null;
+  end_page: number | null;
   reading_text: string;
   due_date: string;
   status: string;
   note: string | null;
+  completed_at?: string | null;
 };
 
 type PortalData = {
@@ -18,6 +21,29 @@ type PortalData = {
   family: { name: string };
   plan: { name: string } | null;
   assignment: Assignment | null;
+  history: Assignment[];
+};
+
+// Displays a ward as individual page numbers: "صفحة 20، صفحة 21"
+// Falls back to reading_text for legacy or custom assignments.
+function formatPages(
+  start: number | null | undefined,
+  end: number | null | undefined,
+  fallback: string
+): string {
+  if (start == null || end == null) return fallback;
+  if (start === end) return `صفحة ${start}`;
+  const pages: string[] = [];
+  for (let p = start; p <= end; p++) {
+    pages.push(`صفحة ${p}`);
+  }
+  return pages.join("، ");
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  done: "قُرئت ✓",
+  assigned: "حالية",
+  excused: "اعتذار",
 };
 
 export default function MemberPortalPage() {
@@ -92,11 +118,10 @@ export default function MemberPortalPage() {
       return;
     }
 
-    // Reload portal — get_member_portal will now return the new assigned ward
     await loadPortal();
   }
 
-  // ── Loading ─────────────────────────────────────────────────────────────────
+  // ── Loading ──────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <main className="grid min-h-screen place-items-center bg-emerald-50 p-6">
@@ -125,12 +150,15 @@ export default function MemberPortalPage() {
 
   const assignment = data.assignment;
   const status = assignment?.status ?? null;
+  const pageLabel = assignment
+    ? formatPages(assignment.start_page, assignment.end_page, assignment.reading_text)
+    : null;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-emerald-50 to-white p-5" dir="rtl">
       <div className="mx-auto max-w-md space-y-4 py-6">
 
-        {/* ── Header ─────────────────────────────────────────────────────── */}
+        {/* ── Header ───────────────────────────────────────────────────────── */}
         <Card className="text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-700 text-3xl text-white">
             🕌
@@ -144,14 +172,14 @@ export default function MemberPortalPage() {
           )}
         </Card>
 
-        {/* ── Assignment area ─────────────────────────────────────────────── */}
+        {/* ── Assignment area ──────────────────────────────────────────────── */}
         {assignment ? (
           <>
             {/* Ward display */}
             <Card>
               <p className="mb-2 text-sm font-semibold text-slate-400">وردك في هذه الختمة</p>
               <p className="text-3xl font-black leading-tight text-emerald-900">
-                {assignment.reading_text}
+                {pageLabel}
               </p>
               <div className="mt-3">
                 <StatusPill status={assignment.status} />
@@ -251,14 +279,47 @@ export default function MemberPortalPage() {
           </Card>
         )}
 
-        {/* ── Error message ───────────────────────────────────────────────── */}
+        {/* ── Khatma history ───────────────────────────────────────────────── */}
+        {data.history && data.history.length > 0 && (
+          <Card>
+            <h2 className="mb-4 text-base font-black text-slate-700">سجلك في الختمة دي</h2>
+            <div className="space-y-2">
+              {data.history.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-slate-800">
+                      {formatPages(item.start_page, item.end_page, item.reading_text)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-400">{item.due_date}</p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${
+                      item.status === "done"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : item.status === "excused"
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-blue-100 text-blue-800"
+                    }`}
+                  >
+                    {STATUS_LABELS[item.status] ?? item.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* ── Error message ─────────────────────────────────────────────────── */}
         {errorMsg && (
           <div className="rounded-2xl border border-rose-100 bg-rose-50 p-3 text-center text-sm font-bold text-rose-700">
             {errorMsg}
           </div>
         )}
 
-        {/* ── Footer ─────────────────────────────────────────────────────── */}
+        {/* ── Footer ───────────────────────────────────────────────────────── */}
         <p className="text-center text-xs text-slate-400">
           لا تحتاج لتسجيل دخول — هذا الرابط خاص بك فقط.
         </p>
