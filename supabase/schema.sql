@@ -198,6 +198,13 @@ to authenticated
 using (user_id = auth.uid() or public.is_super_admin())
 with check (user_id = auth.uid() or public.is_super_admin());
 
+-- Approved payments are readable by all authenticated users (charity tracking feed).
+drop policy if exists "payments_approved_public" on public.payments;
+create policy "payments_approved_public"
+on public.payments for select
+to authenticated
+using (status = 'approved');
+
 create or replace function public.get_member_portal(p_token uuid)
 returns jsonb
 language plpgsql

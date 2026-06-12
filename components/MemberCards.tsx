@@ -167,7 +167,7 @@ export function MemberCards({ members, assignments, onUpdateAssignmentStatus }: 
                 type="button"
                 disabled={loadingIds[currentAssignment.id]}
                 onClick={() => handleRecordReading(currentAssignment.id)}
-                className="mt-3.5 flex w-full items-center justify-center gap-1 rounded-2xl bg-emerald-700 py-2 sm:py-2.5 px-3 sm:px-4 text-[10px] sm:text-xs font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-3.5 flex w-full items-center justify-center gap-1 rounded-2xl bg-emerald-700 min-h-11 py-2.5 px-3 sm:px-4 text-[10px] sm:text-xs font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loadingIds[currentAssignment.id] ? (
                   <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />

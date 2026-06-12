@@ -7,6 +7,22 @@ import { supabase } from "@/lib/supabase";
 import { Button, Card, Input } from "@/components/ui";
 import { CheckCircle } from "lucide-react";
 
+function translateError(msg: string): string {
+  if (msg.includes("Invalid login credentials"))
+    return "البريد الإلكتروني أو كلمة المرور غير صحيحة";
+  if (msg.includes("Email not confirmed"))
+    return "برجاء تأكيد بريدك الإلكتروني أولاً";
+  if (msg.includes("User already registered"))
+    return "البريد الإلكتروني مسجّل بالفعل";
+  if (msg.includes("Password should be at least"))
+    return "كلمة المرور يجب أن تكون 6 أحرف على الأقل";
+  if (msg.includes("rate limit") || msg.includes("over_email_send_rate_limit"))
+    return "محاولات كثيرة، برجاء الانتظار قليلاً";
+  if (msg.includes("Unable to validate email address"))
+    return "البريد الإلكتروني غير صحيح";
+  return "حدث خطأ، برجاء المحاولة مرة أخرى";
+}
+
 // Inner component that reads search params (must be inside Suspense)
 function LoginForm() {
   const router = useRouter();
@@ -33,7 +49,7 @@ function LoginForm() {
     setLoading(false);
 
     if (loginError) {
-      setError(loginError.message);
+      setError(translateError(loginError.message));
       return;
     }
 

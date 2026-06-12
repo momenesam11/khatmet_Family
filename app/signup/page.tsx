@@ -7,6 +7,22 @@ import { supabase } from "@/lib/supabase";
 import { Button, Card, Input } from "@/components/ui";
 import { BookOpen, ArrowRight } from "lucide-react";
 
+function translateError(msg: string): string {
+  if (msg.includes("User already registered"))
+    return "البريد الإلكتروني مسجّل بالفعل";
+  if (msg.includes("Invalid login credentials"))
+    return "البريد الإلكتروني أو كلمة المرور غير صحيحة";
+  if (msg.includes("Email not confirmed"))
+    return "برجاء تأكيد بريدك الإلكتروني أولاً";
+  if (msg.includes("Password should be at least"))
+    return "كلمة المرور يجب أن تكون 6 أحرف على الأقل";
+  if (msg.includes("rate limit") || msg.includes("over_email_send_rate_limit"))
+    return "محاولات كثيرة، برجاء الانتظار قليلاً";
+  if (msg.includes("Unable to validate email address"))
+    return "البريد الإلكتروني غير صحيح";
+  return "حدث خطأ، برجاء المحاولة مرة أخرى";
+}
+
 export default function SignupPage() {
   const router = useRouter();
 
@@ -32,7 +48,7 @@ export default function SignupPage() {
     setLoading(false);
 
     if (signupError) {
-      setError(signupError.message);
+      setError(translateError(signupError.message));
       return;
     }
 
@@ -56,27 +72,14 @@ export default function SignupPage() {
           <span>العودة للرئيسية</span>
         </Link>
 
-<<<<<<< HEAD
-        {/* Brand */}
-        <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white shadow shadow-emerald-950/10">
-            <BookOpen className="h-5 w-5 text-amber-100" />
-          </div>
-          <div>
-            <span className="text-lg font-black tracking-tight text-emerald-950">ختمة عيلة</span>
-            <span className="mr-2 rounded-full border border-amber-100 bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-600">
-              بساطة وبركة
-            </span>
-=======
         {/* Brand Header */}
         <div className="flex items-center gap-2.5 mb-6 sm:gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white shadow shadow-emerald-950/10 sm:h-10 sm:w-10">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-emerald-600 to-emerald-800 text-white shadow shadow-emerald-950/10 sm:h-10 sm:w-10">
             <BookOpen className="h-5 w-5 text-amber-100" />
           </div>
           <div className="min-w-0">
             <span className="text-base font-black tracking-tight text-emerald-950 sm:text-lg">ختمة عيلة</span>
             <span className="mr-1.5 hidden text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 min-[400px]:inline sm:mr-2">بساطة وبركة</span>
->>>>>>> 472176dcd49dc79b720c04d7db6acb2323ef409d
           </div>
         </div>
 
@@ -125,7 +128,7 @@ export default function SignupPage() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 py-3.5 font-bold shadow-md shadow-emerald-900/15 hover:from-emerald-700 hover:to-emerald-800"
+            className="w-full bg-linear-to-r from-emerald-600 to-emerald-700 py-3.5 font-bold shadow-md shadow-emerald-900/15 hover:from-emerald-700 hover:to-emerald-800"
           >
             {loading ? "جاري إنشاء الحساب..." : "إنشاء الحساب والمتابعة →"}
           </Button>

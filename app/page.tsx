@@ -576,76 +576,55 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 9. Section 7 — Pricing */}
+      {/* 9. Section 7 — Support */}
       <section id="pricing" className="bg-[#FAF8F2] py-20 border-y border-amber-900/5 relative">
         <div className="absolute inset-0 bg-radial-gradient-glow pointer-events-none" />
-        
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-          
-          <div className="text-center space-y-3 mb-16">
-            <span className="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 inline-block">مساهمة رمزية ودائمة</span>
+
+        <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <div className="space-y-3 mb-10">
+            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 inline-block">
+              🤍 مجاني بالكامل
+            </span>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-850">
-              اشتراك رمزي يساعد الخدمة تكمل
+              ختمة عيلة مجانية بالكامل
             </h2>
-            <p className="text-slate-500 max-w-lg mx-auto text-sm sm:text-base font-medium">
-              نحن لا نهدف للربح التجاري الصرف؛ الاشتراك رمزي ولدفعة واحدة لتغطية تكاليف السيرفرات والتطوير المستمر.
-            </p>
           </div>
 
-          <div className="flex justify-center">
-            <div className="w-full max-w-md glass-card-gold rounded-3xl p-8 border border-amber-500/20 shadow-xl hover:shadow-2xl transition-all duration-300 relative text-center">
-              
-              {/* Decorative top ribbon */}
-              <div className="absolute top-0 right-1/2 transform translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-amber-600 to-amber-700 text-white text-[10px] font-black tracking-wider px-4 py-1.5 rounded-full shadow border border-amber-400/20 uppercase font-sans">
-                حساب العائلة مدى الحياة
-              </div>
+          <div className="glass-card-gold rounded-3xl p-8 sm:p-10 border border-amber-500/15 shadow-md text-right space-y-6">
+            <p className="text-base sm:text-lg font-semibold leading-relaxed text-slate-700">
+              بنشغّلها بتبرعات أهلها، وجزء من كل تبرع يخرج كصدقة جارية بإذن الله.
+              <br className="hidden sm:block" />
+              لو التطبيق نفعك، فكّر تدعم استمراره.
+            </p>
 
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-black text-emerald-950">باقة عيلة واحدة متكاملة</h3>
-                  <p className="text-xs text-slate-400 mt-1">شراء لمرة واحدة فقط — لا اشتراك شهري أو سنوي</p>
-                </div>
+            <ul className="space-y-3">
+              {[
+                "عدد غير محدود من أفراد العائلة",
+                "ختمات متعددة ومتتالية بدون قيود",
+                "لوحة متابعة وإحصائيات كاملة",
+                "روابط خاصة للأعضاء بدون كلمات مرور",
+                "بدون إعلانات أو بيانات مباعة",
+              ].map((feat) => (
+                <li key={feat} className="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                  <CheckCircle className="h-4 w-4 shrink-0 text-emerald-600" />
+                  {feat}
+                </li>
+              ))}
+            </ul>
 
-                <div className="py-4 bg-[#FAF9F5]/80 rounded-2xl border border-amber-900/5">
-                  <p className="text-5xl font-black text-emerald-900 font-sans">299 جنيه</p>
-                  <p className="text-xs font-bold text-amber-700 mt-1.5">دفع مرة واحدة ومدى الحياة</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">اشتراك رمزي لتغطية مصاريف التشغيل</p>
-                </div>
-
-                {/* Features List */}
-                <ul className="text-right space-y-3.5 px-2">
-                  <li className="flex items-center gap-3 text-slate-700 text-xs sm:text-sm font-semibold">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>عدد غير محدود من أفراد العائلة</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-slate-700 text-xs sm:text-sm font-semibold">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>إنشاء أوراد وختمات متعددة ومتتالية</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-slate-700 text-xs sm:text-sm font-semibold">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>لوحة متابعة وإحصائيات متكاملة للمسؤول</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-slate-700 text-xs sm:text-sm font-semibold">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>روابط خاصة لكافة الأعضاء بدون كلمات مرور</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-slate-700 text-xs sm:text-sm font-semibold">
-                    <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>دعم فني متواصل وتحديثات دائمة مجانًا</span>
-                  </li>
-                </ul>
-
-                {/* CTA */}
-                <div className="pt-2">
-                  <a 
-                    href="#pay"
-                    className="block w-full rounded-2xl bg-gradient-to-r from-emerald-700 to-emerald-800 hover:from-emerald-800 hover:to-emerald-900 py-4 text-center text-sm font-bold text-white shadow-md active:scale-98 transition-all duration-200"
-                  >
-                    اشترك الآن وابدأ ختمتك
-                  </a>
-                </div>
-              </div>
+            <div className="pt-2 flex flex-col sm:flex-row gap-3">
+              <a
+                href="/signup"
+                className="flex-1 rounded-2xl bg-emerald-700 py-4 text-center text-sm font-bold text-white shadow-md transition hover:bg-emerald-800"
+              >
+                ابدأ مجاناً الآن
+              </a>
+              <a
+                href="/payment-pending"
+                className="flex-1 rounded-2xl border border-emerald-200 bg-white py-4 text-center text-sm font-bold text-emerald-700 transition hover:bg-emerald-50"
+              >
+                ادعم المشروع 🤍
+              </a>
             </div>
           </div>
         </div>
@@ -654,24 +633,25 @@ export default function Home() {
       {/* 10. Section 8 — Charity / Sadaqah */}
       <section className="py-20 relative bg-white">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          
-          <div className="glass-card-gold rounded-3xl p-8 sm:p-12 border border-amber-500/15 shadow-md flex flex-col md:flex-row items-center gap-8 text-right relative overflow-hidden bg-gradient-to-br from-amber-50/20 via-white to-white">
-            
-            {/* Background design accents */}
+
+          <div className="glass-card-gold rounded-3xl p-8 sm:p-12 border border-amber-500/15 shadow-md flex flex-col md:flex-row items-center gap-8 text-right relative overflow-hidden bg-linear-to-br from-amber-50/20 via-white to-white">
+
             <div className="absolute -left-12 -bottom-12 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
-            
-            {/* Icon (Right aligned/Center) */}
-            <div className="h-20 w-20 shrink-0 rounded-2xl bg-gradient-to-br from-amber-100 to-amber-200/50 border border-amber-200 flex items-center justify-center text-amber-700 shadow-sm">
+
+            <div className="h-20 w-20 shrink-0 rounded-2xl bg-linear-to-br from-amber-100 to-amber-200/50 border border-amber-200 flex items-center justify-center text-amber-700 shadow-sm">
               <Heart className="h-10 w-10 fill-amber-500/10 text-amber-600" />
             </div>
 
-            {/* Content text */}
             <div className="space-y-4 flex-1">
-              <span className="text-[10px] font-black text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100">بركة الورد القرآني</span>
-              <h3 className="text-xl sm:text-2xl font-black text-emerald-950">جزء من كل اشتراك يخرج كصدقة جارية</h3>
+              <span className="text-[10px] font-black text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-100">صدقتنا الجارية</span>
+              <h3 className="text-xl sm:text-2xl font-black text-emerald-950">جزء من كل تبرع يخرج كصدقة جارية بإذن الله</h3>
               <p className="text-slate-600 text-xs sm:text-sm leading-relaxed font-semibold">
-                نؤمن يقيناً أن التقنية عندما توظف لخدمة كتاب الله عز وجل، يجب أن تفيض بالبركة وتتحلى بالصدق والأمانة والنية الواضحة. لذلك نلتزم باقتطاع جزء محدد من قيمة كل مساهمة رمزية تخرج كصدقة جارية بإذن الله لدعم المشاريع والجمعيات الخيرية.
+                نؤمن أن التقنية عندما توظف لخدمة كتاب الله يجب أن تفيض بالبركة.
+                لذلك نلتزم باقتطاع جزء من كل تبرع ليخرج صدقة جارية بإذن الله لدعم وجوه الخير.
               </p>
+              <div className="rounded-2xl border border-amber-100 bg-amber-50/60 px-4 py-3 text-sm font-semibold text-amber-800">
+                🕊️ سيتم الإعلان عن أول صدقة قريباً إن شاء الله
+              </div>
               <div className="flex flex-wrap gap-x-2 gap-y-1 text-xs font-bold text-amber-800 pt-1">
                 <span>✦ شاركنا في الأجر</span>
                 <span className="hidden sm:inline">•</span>

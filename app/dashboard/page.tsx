@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { track } from "@vercel/analytics";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -11,6 +12,8 @@ import { MemberCards } from "@/components/MemberCards";
 import { WardShareCard } from "@/components/WardShareCard";
 import { MemberProfileDrawer } from "@/components/MemberProfileDrawer";
 import { KhatmaHistoryTab } from "@/components/KhatmaHistoryTab";
+import { KhatmaShareCard, getDua } from "@/components/KhatmaShareCard";
+import { toPng } from "html-to-image";
 
 type Family = {
   id: string;
@@ -22,9 +25,12 @@ type Family = {
   current_round: number;
   khatmas_completed: number;
   last_ward_date: string | null;
+  created_at: string;
 };
+
+type CharityPayment = { id: string; created_at: string; note: string | null };
 type Member = { id: string; name: string; phone: string | null; level: string; access_token: string; family_id: string };
-type Plan = { id: string; name: string; start_date: string; end_date: string; type: string; method: string; active: boolean; family_id: string };
+type Plan = { id: string; name: string; start_date: string; end_date: string; type: string; method: string; active: boolean; family_id: string; purpose: string | null; purpose_note: string | null };
 type Assignment = {
   id: string;
   member_id?: string;
@@ -42,60 +48,309 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 // ── Khatma Completion Modal ──────────────────────────────────────────────────
 
+const PURPOSES_MODAL = [
+  { key: "family_ongoing", label: "ختمة عائلية مستمرة" },
+  { key: "deceased",       label: "ختمة على روح متوفّى" },
+  { key: "intention",      label: "ختمة بنية (شفاء / فرج / توفيق)" },
+  { key: "ramadan",        label: "ختمة رمضان" },
+  { key: "other",          label: "أخرى — اكتب نيّتك" },
+] as const;
+
+type ModalPurposeKey = (typeof PURPOSES_MODAL)[number]["key"];
+
+const MAIN_DUA = "اللهم ارحمنا بالقرآن واجعله لنا إماماً ونوراً وهدى ورحمة";
+
 function KhatmaCompletionModal({
   khatmaNumber,
   familyName,
+  purpose,
+  purposeNote,
+  activePlanId,
   onClose,
 }: {
   khatmaNumber: number;
   familyName: string;
+  purpose?: string | null;
+  purposeNote?: string | null;
+  activePlanId?: string | null;
   onClose: () => void;
 }) {
+  const [phase, setPhase] = useState<"celebration" | "share" | "intention">("celebration");
+  const [newPurpose, setNewPurpose] = useState<ModalPurposeKey>("family_ongoing");
+  const [newPurposeNote, setNewPurposeNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [capturing, setCapturing] = useState(false);
+  const shareCardRef = useRef<HTMLDivElement>(null);
+
+  const extraDua = getDua(purpose, purposeNote);
+
+  async function handleSaveImage() {
+    if (!shareCardRef.current) return;
+    setCapturing(true);
+    try {
+      await new Promise((r) => setTimeout(r, 200));
+      const dataUrl = await toPng(shareCardRef.current, {
+        cacheBust: true,
+        pixelRatio: 3,
+        style: { direction: "rtl" },
+      });
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `ختمة-${familyName}-${khatmaNumber}.png`, { type: "image/png" });
+
+      if (
+        typeof navigator !== "undefined" &&
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare({ files: [file] })
+      ) {
+        await navigator.share({
+          title: `ختمة عيلة ${familyName} رقم ${khatmaNumber}`,
+          text: "بسم الله، اكتملت ختمتنا — ختمة عيلة 🤍",
+          files: [file],
+        });
+      } else {
+        const link = document.createElement("a");
+        link.download = `ختمة-${familyName}-${khatmaNumber}.png`;
+        link.href = dataUrl;
+        link.click();
+      }
+    } catch (err) {
+      console.error("share error", err);
+    } finally {
+      setCapturing(false);
+    }
+  }
+
+  async function saveNewIntention() {
+    if (!activePlanId) { onClose(); return; }
+    setSaving(true);
+    await supabase
+      .from("plans")
+      .update({
+        purpose: newPurpose,
+        purpose_note:
+          newPurpose === "deceased" || newPurpose === "other"
+            ? newPurposeNote.trim() || null
+            : null,
+      })
+      .eq("id", activePlanId);
+    setSaving(false);
+    onClose();
+  }
+
+  // ── Phase: celebration ───────────────────────────────────────────────────────
+  if (phase === "celebration") {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+        dir="rtl"
+      >
+        <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+          <div className="h-1.5 bg-linear-to-r from-emerald-500 to-emerald-700" />
+
+          <div className="space-y-5 p-5 text-center sm:p-8">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-4 border-emerald-100 bg-emerald-50 text-4xl">
+              🕌
+            </div>
+
+            <div className="space-y-1">
+              <h2 className="text-2xl font-black text-emerald-950">
+                مبروك! عيلتكم ختمت القرآن 🤍
+              </h2>
+              <p className="text-sm font-semibold text-emerald-700">
+                تقبّل الله منكم، وجعله في ميزان حسناتكم.
+              </p>
+              <p className="text-xs font-medium text-slate-400">
+                الختمة رقم {khatmaNumber} لعيلة {familyName}
+              </p>
+            </div>
+
+            {/* دعاء الختم */}
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-3 text-right">
+              <p className="text-[11px] font-bold text-slate-500 mb-1">دعاء الختم</p>
+              <p className="text-sm font-semibold leading-relaxed text-emerald-900">
+                {MAIN_DUA}
+              </p>
+            </div>
+
+            {/* دعاء إضافي حسب النية */}
+            {extraDua && (
+              <div className="rounded-2xl border border-amber-100 bg-amber-50/60 px-4 py-3 text-right">
+                <p className="text-[11px] font-bold text-slate-500 mb-1">دعاء النية</p>
+                <p className="text-sm font-semibold leading-relaxed text-amber-900">
+                  {extraDua}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-2.5 pt-1">
+              <button
+                onClick={() => setPhase("share")}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-emerald-600 to-emerald-700 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition hover:from-emerald-700 hover:to-emerald-800"
+              >
+                🎉 شارك الإنجاز
+              </button>
+              <Link
+                href="/payment-pending"
+                className="flex w-full items-center justify-center rounded-2xl border border-emerald-200 bg-white px-6 py-3.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50"
+              >
+                ادعم المشروع
+              </Link>
+              <button
+                onClick={onClose}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-500 transition hover:bg-slate-50"
+              >
+                تمام، شكراً 🤍
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Phase: share ─────────────────────────────────────────────────────────────
+  if (phase === "share") {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+        dir="rtl"
+      >
+        <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+          <div className="h-1.5 bg-linear-to-r from-emerald-500 to-emerald-700" />
+
+          <div className="space-y-5 p-5 sm:p-6">
+            <div className="text-center">
+              <h2 className="text-lg font-black text-slate-800">بطاقة الإنجاز</h2>
+              <p className="mt-0.5 text-xs font-medium text-slate-400">
+                احفظها وشاركها مع العيلة على واتساب 📲
+              </p>
+            </div>
+
+            {/* Card preview — centered, scrollable on tiny screens */}
+            <div className="flex justify-center overflow-x-auto rounded-2xl bg-slate-100 p-3">
+              <KhatmaShareCard
+                ref={shareCardRef}
+                familyName={familyName}
+                khatmaNumber={khatmaNumber}
+                purpose={purpose}
+                purposeNote={purposeNote}
+              />
+            </div>
+
+            <div className="space-y-2.5">
+              <button
+                onClick={handleSaveImage}
+                disabled={capturing}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-emerald-600 to-emerald-700 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition hover:from-emerald-700 hover:to-emerald-800 disabled:opacity-50"
+              >
+                {capturing ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    جاري التصدير...
+                  </>
+                ) : (
+                  "📥 حفظ ومشاركة"
+                )}
+              </button>
+              <button
+                onClick={() => setPhase("intention")}
+                className="w-full rounded-2xl border border-emerald-200 bg-white px-6 py-3 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50"
+              >
+                اختر نية الختمة الجديدة
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Phase: intention ─────────────────────────────────────────────────────────
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       dir="rtl"
     >
       <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
-        <div className="h-1.5 bg-gradient-to-r from-emerald-500 to-emerald-700" />
+        <div className="h-1.5 bg-linear-to-r from-emerald-500 to-emerald-700" />
 
-        <div className="space-y-5 p-5 text-center sm:p-8">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-4 border-emerald-100 bg-emerald-50 text-4xl">
-            🕌
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-2xl font-black text-emerald-950">
-              مبروك! عيلتكم ختمت القرآن كاملاً 🤍
+        <div className="space-y-5 p-5 sm:p-8">
+          <div className="text-center">
+            <h2 className="text-lg font-black text-slate-800">
+              ما نية ختمتكم القادمة؟
             </h2>
-            <p className="text-base font-semibold text-emerald-700">
-              تقبّل الله منكم، وجعله في ميزان حسناتكم.
-            </p>
-            <p className="text-sm font-medium text-slate-400">
-              الختمة رقم {khatmaNumber} لعيلة {familyName}
+            <p className="mt-0.5 text-xs font-medium text-slate-400">
+              اختر النية وسنذكّركم بها في كل ورد.
             </p>
           </div>
 
-          <div className="border-t border-slate-100" />
-
-          <div className="rounded-2xl border border-amber-100/80 bg-amber-50 p-4 text-right">
-            <p className="text-sm font-semibold leading-relaxed text-amber-900">
-              ختمة عيلة بيتشغّل بتبرعات أهله، وجزء من كل تبرع يخرج كصدقة جارية. لو حابين تدعموا استمرار المشروع، ده اختياري تماماً.
-            </p>
+          {/* Purpose options */}
+          <div className="grid gap-2">
+            {PURPOSES_MODAL.map((p) => {
+              const sel = newPurpose === p.key;
+              return (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => setNewPurpose(p.key)}
+                  className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-right text-sm font-bold transition ${
+                    sel
+                      ? "border-emerald-700 bg-emerald-50 text-emerald-900"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-emerald-200"
+                  }`}
+                >
+                  <span
+                    className={`h-4 w-4 shrink-0 rounded-full border-2 ${
+                      sel ? "border-emerald-700 bg-emerald-700" : "border-slate-300"
+                    }`}
+                  />
+                  {p.label}
+                </button>
+              );
+            })}
           </div>
 
-          <div className="space-y-3">
-            <Link
-              href="/payment-pending"
-              className="flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-emerald-700 to-emerald-800 px-6 py-4 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:from-emerald-800 hover:to-emerald-900"
+          {/* Note input for deceased or other */}
+          {(newPurpose === "deceased" || newPurpose === "other") && (
+            <div className="animate-in fade-in duration-200">
+              <label className="mb-1.5 block text-xs font-bold text-slate-600">
+                {newPurpose === "deceased" ? "اسم المتوفّى (اختياري)" : "اكتب نيّتك"}
+              </label>
+              <input
+                type="text"
+                value={newPurposeNote}
+                onChange={(e) => setNewPurposeNote(e.target.value)}
+                placeholder={
+                  newPurpose === "deceased"
+                    ? "مثال: الحاج أحمد محمود"
+                    : "مثال: ختمة شكر لله على نعمة..."
+                }
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-right text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+              />
+            </div>
+          )}
+
+          <div className="space-y-2.5 pt-1">
+            <button
+              onClick={saveNewIntention}
+              disabled={saving}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-emerald-600 to-emerald-700 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition hover:from-emerald-700 hover:to-emerald-800 disabled:opacity-50"
             >
-              ادعم المشروع
-            </Link>
+              {saving ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  جاري الحفظ...
+                </>
+              ) : (
+                "حفظ النية"
+              )}
+            </button>
             <button
               onClick={onClose}
-              className="w-full rounded-2xl border border-slate-200 bg-white px-6 py-4 text-sm font-bold text-slate-600 transition-all duration-200 hover:bg-slate-50"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-500 transition hover:bg-slate-50"
             >
-              تمام، شكراً 🤍
+              لاحقاً
             </button>
           </div>
         </div>
@@ -128,6 +383,10 @@ export default function DashboardPage() {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completedKhatmaNumber, setCompletedKhatmaNumber] = useState(0);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [showSupportBanner, setShowSupportBanner] = useState(false);
+  const [initError, setInitError] = useState(false);
+  const [charityPayments, setCharityPayments] = useState<CharityPayment[]>([]);
+  const [charityLoading, setCharityLoading] = useState(false);
   const [historySheetOpen, setHistorySheetOpen] = useState(false);
 
   const activePlan = plans[0] || null;
@@ -150,36 +409,69 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function init() {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
-        router.push("/login");
-        return;
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (!data.user) {
+          router.push("/login");
+          return;
+        }
+
+        setUserId(data.user.id);
+
+        // Smart check: if user has no family row, redirect to onboarding /setup
+        const { data: familyData } = await supabase
+          .from("families")
+          .select("*")
+          .eq("owner_id", data.user.id)
+          .maybeSingle();
+
+        if (!familyData) {
+          router.push("/setup");
+          return;
+        }
+
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .single();
+        if (profileData) setUserRole(profileData.role);
+
+        setFamily(familyData);
+        await Promise.all([loadMembers(familyData.id), loadPlans(familyData.id)]);
+
+        // ── 7-day support banner ──────────────────────────────────────────────
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const isOldEnough = familyData.created_at < sevenDaysAgo.toISOString();
+        const dismissed = typeof window !== "undefined" &&
+          !!localStorage.getItem("support_banner_dismissed");
+
+        if (isOldEnough && !dismissed) {
+          const { count: paymentCount } = await supabase
+            .from("payments")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", data.user.id);
+          if ((paymentCount ?? 0) === 0) setShowSupportBanner(true);
+        }
+
+        // ── Charity tracking ──────────────────────────────────────────────────
+        setCharityLoading(true);
+        const { data: charityData } = await supabase
+          .from("payments")
+          .select("id, created_at, note")
+          .eq("status", "approved")
+          .order("created_at", { ascending: false })
+          .limit(5);
+        setCharityPayments((charityData as CharityPayment[]) ?? []);
+        setCharityLoading(false);
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Dashboard init error:", error);
+        setLoading(false);
+        setInitError(true);
       }
-
-      setUserId(data.user.id);
-      
-      // Smart check: if user has no family row, redirect to onboarding /setup
-      const { data: familyData } = await supabase
-        .from("families")
-        .select("*")
-        .eq("owner_id", data.user.id)
-        .maybeSingle();
-
-      if (!familyData) {
-        router.push("/setup");
-        return;
-      }
-
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", data.user.id)
-        .single();
-      if (profileData) setUserRole(profileData.role);
-
-      setFamily(familyData);
-      await Promise.all([loadMembers(familyData.id), loadPlans(familyData.id)]);
-      setLoading(false);
     }
 
     init();
@@ -390,6 +682,7 @@ export default function DashboardPage() {
     await loadFamily();
     setCompletedKhatmaNumber(newKhatmasCompleted);
     setShowCompletionModal(true);
+    track("khatma_completed", { khatma_number: newKhatmasCompleted });
     return;
   }
 
@@ -440,7 +733,34 @@ export default function DashboardPage() {
   }
 
   if (loading) {
-    return <main className="grid min-h-screen place-items-center bg-slate-50 p-6">جاري التحميل...</main>;
+    return (
+      <main className="grid min-h-screen place-items-center bg-slate-50 p-6">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-700" />
+          <p className="text-sm font-bold text-slate-400">جاري التحميل...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (initError) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-slate-50 p-6" dir="rtl">
+        <div className="text-center space-y-4">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-50 text-3xl">
+            ⚠️
+          </div>
+          <p className="text-lg font-bold text-slate-700">حدث خطأ في تحميل البيانات</p>
+          <p className="text-sm text-slate-500">تحقق من اتصالك بالإنترنت وحاول مرة أخرى.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="rounded-2xl bg-emerald-700 px-6 py-3 text-sm font-bold text-white transition hover:bg-emerald-800"
+          >
+            حاول مرة أخرى
+          </button>
+        </div>
+      </main>
+    );
   }
 
   // init() redirects to /setup if !family — this guard is for TypeScript narrowing only
@@ -551,6 +871,42 @@ const sortedAssignments = [...assignments].sort((a, b) => {
             {message && <div className="rounded-2xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700">{message}</div>}
           </header>
 
+          {/* ── 7-day support banner ─────────────────────────────────────── */}
+          {showSupportBanner && (
+            <div
+              dir="rtl"
+              className="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-sm"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-emerald-900">
+                  بقالكم أكتر من أسبوع مع ختمة عيلة 🤍
+                </p>
+                <p className="text-xs font-medium text-emerald-700">
+                  لو التطبيق نفعكم، فكّروا تدعموا استمراره.
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Link
+                  href="/payment-pending"
+                  className="rounded-xl bg-emerald-700 px-3 py-2 text-xs font-bold text-white transition hover:bg-emerald-800"
+                >
+                  ادعم المشروع
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.setItem("support_banner_dismissed", "1");
+                    setShowSupportBanner(false);
+                  }}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-emerald-600 transition hover:bg-emerald-100"
+                  aria-label="إغلاق"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
           {activeTab === "dashboard" && (
             <div className="space-y-6 animate-fade-in" dir="rtl">
               {/* Legacy banner: shown only when family exists but has no plan yet */}
@@ -607,6 +963,31 @@ const sortedAssignments = [...assignments].sort((a, b) => {
 
               {/* Stats Bar */}
               <StatsBar assignments={assignments} khatmasCompleted={family.khatmas_completed} totalMembers={members.length} />
+
+              {/* Charity tracking card */}
+              {!charityLoading && (
+                <div className="rounded-2xl border border-amber-200/60 bg-amber-50/40 p-4">
+                  <p className="mb-2 text-xs font-black text-amber-800">🕊️ صدقتنا الجارية</p>
+                  {charityPayments.length === 0 ? (
+                    <p className="text-xs font-semibold text-amber-700">
+                      سيتم الإعلان عن أول صدقة قريباً إن شاء الله 🤍
+                    </p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {charityPayments.map((p) => (
+                        <div key={p.id} className="flex items-center justify-between gap-3 text-xs">
+                          <span className="font-semibold text-amber-900">
+                            {p.note || "صدقة جارية"}
+                          </span>
+                          <span className="text-amber-600">
+                            {new Date(p.created_at).toLocaleDateString("ar-EG")}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Khatma Quran Map Grid */}
               <KhatmaGrid assignments={assignments} />
@@ -807,6 +1188,9 @@ const sortedAssignments = [...assignments].sort((a, b) => {
         <KhatmaCompletionModal
           khatmaNumber={completedKhatmaNumber}
           familyName={family.name}
+          purpose={activePlan?.purpose}
+          purposeNote={activePlan?.purpose_note}
+          activePlanId={activePlan?.id}
           onClose={() => setShowCompletionModal(false)}
         />
       )}

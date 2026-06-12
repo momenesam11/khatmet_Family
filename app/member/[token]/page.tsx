@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import { Button, Card, StatusPill } from "@/components/ui";
+import { track } from "@vercel/analytics";
 
 const QuranPageViewer = dynamic(
   () => import("@/components/QuranPageViewer"),
@@ -99,6 +100,7 @@ export default function MemberPortalPage() {
       return;
     }
 
+    if (status === "done") track("ward_completed");
     setNote("");
     await loadPortal();
   }
@@ -124,6 +126,7 @@ export default function MemberPortalPage() {
       return;
     }
 
+    track("extra_ward_claimed");
     await loadPortal();
   }
 
@@ -161,7 +164,7 @@ export default function MemberPortalPage() {
     : null;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-emerald-50 to-white p-5" dir="rtl">
+    <main className="min-h-screen bg-linear-to-b from-emerald-50 to-white p-5" dir="rtl">
       <div className="mx-auto max-w-md space-y-4 py-6">
 
         {/* ── Header ───────────────────────────────────────────────────────── */}
@@ -216,7 +219,7 @@ export default function MemberPortalPage() {
                   <Button
                     onClick={() => submit("done")}
                     disabled={actionLoading}
-                    className="w-full"
+                    className="w-full min-h-14"
                   >
                     {actionLoading ? "جاري التسجيل…" : "✓ تمت القراءة"}
                   </Button>
@@ -224,7 +227,7 @@ export default function MemberPortalPage() {
                     variant="secondary"
                     onClick={() => submit("excused")}
                     disabled={actionLoading}
-                    className="w-full"
+                    className="w-full min-h-14"
                   >
                     ◷ مش قادر أقرأ اليوم
                   </Button>

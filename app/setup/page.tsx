@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { track } from "@vercel/analytics";
 import { supabase } from "@/lib/supabase";
 import { Card, Input } from "@/components/ui";
 import {
@@ -215,6 +216,7 @@ export default function OnboardingSetupPage() {
         data: { onboarding_completed: true, khatma_purpose: purposeKey, setup_step: 4 },
       });
 
+      track("khatma_started", { purpose: purposeKey });
       router.push("/dashboard");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "حدث خطأ، يرجى المحاولة مرة أخرى.");
@@ -265,7 +267,6 @@ export default function OnboardingSetupPage() {
 
   // ── Wizard ───────────────────────────────────────────────────────────────────
   return (
-<<<<<<< HEAD
     <main
       className="grid min-h-screen place-items-center bg-islamic-grid p-4 sm:p-6 font-sans antialiased"
       dir="rtl"
@@ -317,22 +318,6 @@ export default function OnboardingSetupPage() {
               <p className="text-xs font-semibold leading-relaxed text-slate-500">
                 ستختار اسم العيلة ونية الختمة، ثم تضيف الأفراد — وبعدها الختمة جاهزة للجميع.
               </p>
-=======
-    <main className="grid min-h-screen place-items-center bg-islamic-grid p-4 sm:p-6 font-sans antialiased text-right">
-      <Card className="w-full max-w-2xl glass-card border border-slate-200/60 shadow-xl p-5 sm:p-8 relative overflow-hidden flex flex-col justify-between min-h-0 sm:min-h-[500px]">
-        {/* Soft decorative visual */}
-        <div className="absolute -left-12 -top-12 h-32 w-32 rounded-full bg-emerald-500/5 blur-xl pointer-events-none" />
-
-        {/* Top Progress bar and steps */}
-        <div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-6 pb-4 border-b border-slate-100">
-            <span className="self-start text-xs font-black text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
-              الخطوة {step} من 4
-            </span>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-black text-emerald-950">إعداد الختمة الأولى</span>
-              <BookOpen className="h-4 w-4 text-emerald-700" />
->>>>>>> 472176dcd49dc79b720c04d7db6acb2323ef409d
             </div>
           </div>
         )}
@@ -384,6 +369,17 @@ export default function OnboardingSetupPage() {
                 })}
               </div>
             </div>
+
+            {purposeKey === "deceased" && (
+              <div className="animate-in fade-in duration-200">
+                <Input
+                  label="اسم المتوفّى (اختياري)"
+                  value={purposeNote}
+                  onChange={setPurposeNote}
+                  placeholder="مثال: الحاج أحمد محمود"
+                />
+              </div>
+            )}
 
             {purposeKey === "other" && (
               <div className="animate-in fade-in duration-200">
@@ -463,7 +459,6 @@ export default function OnboardingSetupPage() {
               )}
             </div>
 
-<<<<<<< HEAD
             {/* Members list */}
             {members.length > 0 ? (
               <div className="space-y-2">
@@ -562,11 +557,6 @@ export default function OnboardingSetupPage() {
         {/* ── Navigation ── */}
         <div className="mt-8 flex items-center justify-between gap-3 border-t border-slate-100 pt-5">
           {/* Back */}
-=======
-        {/* Dynamic CTAs Bottom bar */}
-        <div className="mt-8 pt-4 border-t border-slate-100 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-          {/* Back button */}
->>>>>>> 472176dcd49dc79b720c04d7db6acb2323ef409d
           {step > 1 ? (
             <Btn variant="ghost" onClick={() => { setError(""); setStep(s => s - 1); }} disabled={saving}>
               <ArrowRight className="h-4 w-4" />
@@ -574,39 +564,18 @@ export default function OnboardingSetupPage() {
             </Btn>
           ) : <div />}
 
-<<<<<<< HEAD
           {/* Next / Submit */}
           {step < TOTAL_STEPS ? (
             <Btn variant="primary" onClick={next} className="px-6 py-3 text-xs">
               التالي
-=======
-          {/* Next / Submit button */}
-          {step < 4 ? (
-            <button
-              onClick={() => {
-                if (step === 2 && (!familyName || !ownerName)) {
-                  setError("يرجى ملء جميع الحقول المطلوبة للمتابعة.");
-                  setTimeout(() => setError(""), 2000);
-                  return;
-                }
-                setStep(step + 1);
-              }}
-              className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow shadow-emerald-950/5 active:scale-95"
-            >
-              <span>التالي</span>
->>>>>>> 472176dcd49dc79b720c04d7db6acb2323ef409d
               <ArrowLeft className="h-4 w-4" />
             </Btn>
           ) : (
             <button
               type="button"
               disabled={saving}
-<<<<<<< HEAD
               onClick={handleSubmit}
               className="flex items-center gap-2 rounded-xl bg-linear-to-r from-emerald-600 to-emerald-700 px-6 py-3 text-xs font-bold text-white shadow shadow-emerald-950/15 transition hover:from-emerald-700 hover:to-emerald-800 active:scale-95 disabled:opacity-50"
-=======
-              className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow shadow-emerald-950/15 active:scale-95 disabled:opacity-50"
->>>>>>> 472176dcd49dc79b720c04d7db6acb2323ef409d
             >
               {saving ? (
                 <>
