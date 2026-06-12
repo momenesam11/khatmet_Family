@@ -2,8 +2,14 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import { Button, Card, StatusPill } from "@/components/ui";
+
+const QuranPageViewer = dynamic(
+  () => import("@/components/QuranPageViewer"),
+  { ssr: false }
+);
 
 type Assignment = {
   id: string;
@@ -185,6 +191,11 @@ export default function MemberPortalPage() {
                 <StatusPill status={assignment.status} />
               </div>
             </Card>
+
+            {/* ── Quran page viewer ─────────────────────────────────────── */}
+            {status === "assigned" && assignment.start_page != null && (
+              <QuranPageViewer pageNumber={assignment.start_page} />
+            )}
 
             {/* ── ASSIGNED: action buttons ──────────────────────────────── */}
             {status === "assigned" && (
