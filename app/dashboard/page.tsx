@@ -9,6 +9,8 @@ import { StatsBar } from "@/components/StatsBar";
 import { KhatmaGrid } from "@/components/KhatmaGrid";
 import { MemberCards } from "@/components/MemberCards";
 import { WardShareCard } from "@/components/WardShareCard";
+import { MemberProfileDrawer } from "@/components/MemberProfileDrawer";
+import { KhatmaHistoryTab } from "@/components/KhatmaHistoryTab";
 
 type Family = {
   id: string;
@@ -121,12 +123,12 @@ export default function DashboardPage() {
   const [memberName, setMemberName] = useState("");
   const [memberPhone, setMemberPhone] = useState("");
   const [memberLevel, setMemberLevel] = useState("صفحة يوميًا");
-  const [planName, setPlanName] = useState("ورد العيلة اليومي");
-  const [planType, setPlanType] = useState("توزيع بالصفحات");
   const [message, setMessage] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completedKhatmaNumber, setCompletedKhatmaNumber] = useState(0);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [historySheetOpen, setHistorySheetOpen] = useState(false);
 
   const activePlan = plans[0] || null;
   const completedCount = assignments.filter((assignment) => assignment.status === "done").length;
@@ -253,16 +255,26 @@ export default function DashboardPage() {
     event.preventDefault();
     if (!family) return;
 
-    const { error } = await supabase.from("members").insert({
-      family_id: family.id,
-      name: memberName,
-      phone: memberPhone || null,
-      level: memberLevel,
-    });
+    const { data: newMember, error } = await supabase
+      .from("members")
+      .insert({
+        family_id: family.id,
+        name: memberName,
+        phone: memberPhone || null,
+        level: memberLevel,
+      })
+      .select("id")
+      .single();
 
     if (error) {
       setMessage(error.message);
       return;
+    }
+
+    // Auto-assign next ward to the new member if a plan is active
+    if (activePlan && newMember) {
+      await supabase.rpc("assign_ward_to_member", { p_member_id: newMember.id });
+      await loadAssignments(activePlan.id);
     }
 
     setMemberName("");
@@ -271,75 +283,45 @@ export default function DashboardPage() {
     await loadMembers(family.id);
   }
 
-  async function createPlan(event: FormEvent) {
-  event.preventDefault();
-  if (!family || members.length === 0) return;
+  // Fallback for legacy accounts (family exists but no plan was created during onboarding).
+  // New accounts always have a plan created in /setup — this is only a safety net.
+  async function createDefaultPlan() {
+    if (!family || members.length === 0 || plans.length > 0) return;
+    const today = new Date().toISOString().slice(0, 10);
 
-  if (plans.length > 0) {
-    setMessage("الحساب له ختمة واحدة فقط. يمكنك إنهاء الورد الحالي وإنشاء ورد جديد داخل نفس الختمة.");
-    return;
-  }
+    const { data: planData, error: planError } = await supabase
+      .from("plans")
+      .insert({
+        family_id: family.id,
+        name: `ختمة ${family.name}`,
+        type: "توزيع بالصفحات",
+        method: "توزيع تلقائي",
+        start_date: today,
+        active: true,
+      })
+      .select("*")
+      .single();
 
-  const today = new Date().toISOString().slice(0, 10);
-  const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
+    if (planError || !planData) { setMessage(planError?.message || "لم يتم إنشاء الختمة"); return; }
 
-  const { data: planData, error: planError } = await supabase
-    .from("plans")
-    .insert({
-      family_id: family.id,
-      name: family.name,
-      type: planType,
-      method: "توزيع تلقائي",
-      start_date: today,
-      end_date: endDate,
-      active: true,
-    })
-    .select("*")
-    .single();
-
-  if (planError || !planData) {
-    setMessage(planError?.message || "لم يتم إنشاء الختمة");
-    return;
-  }
-
-  const startPage = family.current_start_page || 1;
-
-  const rows = members.map((member, index) => {
-    const from = startPage + index;
-    const to = from;
-
-    return {
+    const startPage = family.current_start_page || 1;
+    const rows = members.map((member, index) => ({
       plan_id: planData.id,
       member_id: member.id,
-      reading_text: `صفحة ${from}`,
+      reading_text: `صفحة ${startPage + index}`,
       due_date: today,
       status: "assigned",
-      start_page: from,
-      end_page: to,
-    };
-  });
+      start_page: startPage + index,
+      end_page: startPage + index,
+    }));
 
-  const { error: assignmentError } = await supabase
-    .from("assignments")
-    .insert(rows);
+    const { error: assignError } = await supabase.from("assignments").insert(rows);
+    if (assignError) { setMessage(assignError.message); return; }
 
-  if (assignmentError) {
-    setMessage(assignmentError.message);
-    return;
+    await supabase.from("families").update({ last_ward_date: today }).eq("id", family.id);
+    await loadPlans(family.id);
+    setActiveTab("tracking");
   }
-
-  // Set last_ward_date so the lazy transition in get_member_portal
-  // does not create a duplicate ward if a member opens their portal today.
-  await supabase
-    .from("families")
-    .update({ last_ward_date: today })
-    .eq("id", family.id);
-
-  await loadPlans(family.id);
-  setActiveTab("tracking");
-}
 
   async function updateAssignment(id: string, status: "done" | "excused" | "assigned") {
     if (!activePlan) return;
@@ -482,7 +464,6 @@ const sortedAssignments = [...assignments].sort((a, b) => {
   const tabs: [string, string, string][] = [
     ["dashboard", "الرئيسية", "⌂"],
     ["members", "أفراد", "👥"],
-    ["plans", "الختمات", "▣"],
     ["tracking", "المتابعة", "▤"],
     ["messages", "الرسائل", "✉"],
   ];
@@ -538,9 +519,9 @@ const sortedAssignments = [...assignments].sort((a, b) => {
             {[
               ["dashboard", "الرئيسية", "⌂"],
               ["members", "أفراد العيلة", "👥"],
-              ["plans", "الختمات والأوراد", "▣"],
               ["tracking", "المتابعة", "▤"],
               ["messages", "الرسائل", "✉"],
+              ["history", "سجل الختمات", "📖"],
             ].map(([key, label, icon]: string[]) => (
               <button
                 key={key}
@@ -572,6 +553,18 @@ const sortedAssignments = [...assignments].sort((a, b) => {
 
           {activeTab === "dashboard" && (
             <div className="space-y-6 animate-fade-in" dir="rtl">
+              {/* Legacy banner: shown only when family exists but has no plan yet */}
+              {plans.length === 0 && members.length > 0 && (
+                <div className="flex items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+                  <Button variant="secondary" onClick={createDefaultPlan} className="flex-shrink-0 text-xs">
+                    ابدأ ختمة الآن
+                  </Button>
+                  <p className="text-right text-sm font-semibold text-amber-800">
+                    لا توجد ختمة نشطة — اضغط لإنشاء ختمة تلقائية لأفراد العيلة.
+                  </p>
+                </div>
+              )}
+
               {/* Premium Khatma Header */}
               <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm glass-card-emerald overflow-hidden relative">
                 <div className="absolute top-0 right-0 w-48 h-48 opacity-5 pointer-events-none bg-[radial-gradient(circle_at_top_right,#10b981_0%,transparent_70%)]" />
@@ -646,7 +639,16 @@ const sortedAssignments = [...assignments].sort((a, b) => {
                     <tbody>
                       {members.map((member) => (
                         <tr key={member.id} className="border-t border-slate-100">
-                          <td className="p-3 font-bold">{member.name}</td>
+                          <td className="p-3">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedMember(member)}
+                              className="inline-flex items-center gap-1.5 font-bold text-emerald-700 transition hover:text-emerald-900 hover:underline cursor-pointer"
+                            >
+                              {member.name}
+                              <span className="text-xs text-emerald-400">👁</span>
+                            </button>
+                          </td>
                           <td className="p-3">{member.phone || "—"}</td>
                           <td className="p-3">{member.level}</td>
                           <td className="p-3">
@@ -677,65 +679,6 @@ const sortedAssignments = [...assignments].sort((a, b) => {
             </div>
           )}
 
-          {activeTab === "plans" && (
-  <Card className="max-w-2xl">
-    <h2 className="text-2xl font-black">الختمة الحالية</h2>
-
-    {activePlan ? (
-      <div className="mt-6 rounded-3xl bg-emerald-50 p-5">
-        <h3 className="text-xl font-black text-emerald-900">
-          {activePlan.name}
-        </h3>
-        <p className="mt-2 text-sm text-emerald-700">
-          الحساب له ختمة واحدة فقط. يمكنك إنشاء ورد جديد من زر "إنهاء الورد وإنشاء ورد جديد" في الرئيسية.
-        </p>
-
-        <Button
-          className="mt-5"
-          onClick={() => setActiveTab("dashboard")}
-        >
-          الذهاب للرئيسية
-        </Button>
-      </div>
-    ) : (
-      <>
-        <p className="mt-2 text-slate-600">
-          سيتم إنشاء ختمة واحدة لهذا الحساب وتوزيع أول ورد على أفراد العيلة.
-        </p>
-
-        <form onSubmit={createPlan} className="mt-6 space-y-4">
-          <Input
-            label="اسم الختمة"
-            value={planName}
-            onChange={setPlanName}
-            required
-          />
-
-          <Select
-            label="طريقة التوزيع"
-            value={planType}
-            onChange={setPlanType}
-          >
-            <option>توزيع بالصفحات</option>
-            <option>توزيع بالأجزاء</option>
-            <option>توزيع بالأحزاب</option>
-            <option>توزيع مخصص</option>
-          </Select>
-
-          <Button type="submit" disabled={members.length === 0}>
-            إنشاء الختمة
-          </Button>
-        </form>
-
-        {members.length === 0 && (
-          <p className="mt-4 text-sm font-bold text-amber-700">
-            أضف أفراد العيلة الأول.
-          </p>
-        )}
-      </>
-    )}
-  </Card>
-)}
           {activeTab === "tracking" && (
             <Card>
               <div className="mb-6 flex items-center justify-between">
@@ -792,8 +735,21 @@ const sortedAssignments = [...assignments].sort((a, b) => {
               })}
             </div>
           )}
+
+          {activeTab === "history" && (
+            <KhatmaHistoryTab familyId={family.id} />
+          )}
         </section>
       </div>
+
+      {/* ── Member Profile Drawer ────────────────────────────────────────── */}
+      {selectedMember && (
+        <MemberProfileDrawer
+          member={selectedMember}
+          onClose={() => setSelectedMember(null)}
+          onCopy={copyText}
+        />
+      )}
 
       {/* ── Khatma Completion Modal ──────────────────────────────────────── */}
       {showCompletionModal && (
@@ -802,6 +758,37 @@ const sortedAssignments = [...assignments].sort((a, b) => {
           familyName={family.name}
           onClose={() => setShowCompletionModal(false)}
         />
+      )}
+
+      {/* ── History Bottom Sheet (mobile only) ──────────────────────────── */}
+      {historySheetOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden" dir="rtl">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setHistorySheetOpen(false)}
+          />
+          {/* Sheet */}
+          <div className="absolute bottom-0 left-0 right-0 flex max-h-[90dvh] flex-col rounded-t-3xl bg-white shadow-2xl">
+            {/* Handle */}
+            <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4">
+              <button
+                type="button"
+                onClick={() => setHistorySheetOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100"
+                aria-label="إغلاق"
+              >
+                ✕
+              </button>
+              <h2 className="text-base font-black text-slate-800">سجل الختمات</h2>
+              <span className="text-xl">📖</span>
+            </div>
+            {/* Content — scrollable */}
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-8 pt-4">
+              <KhatmaHistoryTab familyId={family.id} />
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── Mobile bottom tab bar ────────────────────────────────────────── */}
@@ -819,6 +806,17 @@ const sortedAssignments = [...assignments].sort((a, b) => {
             <span>{label}</span>
           </button>
         ))}
+        {/* History sheet trigger */}
+        <button
+          type="button"
+          onClick={() => setHistorySheetOpen(true)}
+          className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-bold transition ${
+            historySheetOpen ? "text-emerald-700" : "text-slate-400"
+          }`}
+        >
+          <span className="text-lg leading-none">📖</span>
+          <span>السجل</span>
+        </button>
       </nav>
 
     </main>

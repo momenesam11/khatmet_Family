@@ -70,10 +70,10 @@ export function Navbar() {
               href="/login"
               className="rounded-2xl px-5 py-2.5 text-sm font-bold text-emerald-800 hover:bg-emerald-50 border border-emerald-100 transition-all duration-200"
             >
-              دخول المسؤول
+             تسجيل الدخول
             </a>
             <a 
-              href="#pricing" 
+              href="signup" 
               className="rounded-2xl bg-gradient-to-r from-emerald-700 to-emerald-800 hover:from-emerald-800 hover:to-emerald-900 px-6 py-2.5 text-sm font-bold text-white shadow-sm shadow-emerald-900/10 hover:shadow-md transition-all duration-200"
             >
               ابدأ ختمة العيلة
@@ -114,8 +114,7 @@ export function Navbar() {
                 onClick={() => setIsOpen(false)}
                 className="rounded-xl border border-emerald-100 px-4 py-3 text-center text-sm font-bold text-emerald-800 hover:bg-emerald-50 transition"
               >
-                دخول المسؤول
-              </a>
+تسجيل الدخول              </a>
               <a 
                 href="#pricing" 
                 onClick={() => setIsOpen(false)}

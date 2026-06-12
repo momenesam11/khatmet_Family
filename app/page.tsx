@@ -74,7 +74,7 @@ export default function Home() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <a 
-                href="#pricing"
+                href="signup"
                 className="rounded-2xl bg-gradient-to-r from-emerald-700 to-emerald-800 hover:from-emerald-800 hover:to-emerald-900 px-8 py-4 text-center text-base font-bold text-white shadow-lg shadow-emerald-900/15 hover:shadow-xl active:scale-98 transition-all duration-200"
               >
                 ابدأ ختمة العيلة الآن
