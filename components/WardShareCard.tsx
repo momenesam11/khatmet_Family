@@ -91,8 +91,37 @@ export function WardShareCard({ familyName, planName, assignments }: WardShareCa
       <h3 className="text-lg font-black text-slate-900">بطاقة المشاركة اليومية</h3>
       
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+        {/* Action buttons — shown first on mobile */}
+        <div className="flex flex-col justify-center space-y-4 order-first lg:order-last">
+          <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm space-y-2">
+            <h4 className="font-black text-slate-800 text-sm">مشاركة الورد اليومي</h4>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              يمكنك تصدير هذه البطاقة كصورة لمشاركتها بسهولة على مجموعة واتساب العائلة. ستظهر الصورة بجميع أوراد اليوم وحالة قراءة كل فرد.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            disabled={isCapturing || latestAssignmentsByMember.length === 0}
+            onClick={saveAsImage}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 py-3.5 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isCapturing ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                <span>جاري توليد الصورة...</span>
+              </>
+            ) : (
+              <>
+                <Share2 size={16} />
+                <span>📸 حفظ كصورة ومشاركة</span>
+              </>
+            )}
+          </button>
+        </div>
+
         {/* Capturable Card Preview Wrapper */}
-        <div className="overflow-x-auto pb-2 flex items-center justify-center bg-slate-100 rounded-3xl p-2 sm:p-4 border border-slate-200">
+        <div className="order-last lg:order-first overflow-x-auto pb-2 flex items-center justify-center bg-slate-100 rounded-3xl p-2 sm:p-4 border border-slate-200">
           <div 
             ref={cardRef} 
             className="w-full max-w-[360px] overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-950 p-4 sm:p-6 text-white shadow-xl relative select-none"
@@ -173,35 +202,6 @@ export function WardShareCard({ familyName, planName, assignments }: WardShareCa
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Action Description & Buttons */}
-        <div className="flex flex-col justify-center space-y-4">
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-2">
-            <h4 className="font-black text-slate-800 text-sm">مشاركة الورد اليومي</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              يمكنك تصدير هذه البطاقة كصورة لمشاركتها بسهولة على مجموعة واتساب العائلة. ستظهر الصورة بجميع أوراد اليوم وحالة قراءة كل فرد.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            disabled={isCapturing || latestAssignmentsByMember.length === 0}
-            onClick={saveAsImage}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 py-3.5 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isCapturing ? (
-              <>
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                <span>جاري توليد الصورة...</span>
-              </>
-            ) : (
-              <>
-                <Share2 size={16} />
-                <span>📸 حفظ كصورة ومشاركة</span>
-              </>
-            )}
-          </button>
         </div>
       </div>
     </div>

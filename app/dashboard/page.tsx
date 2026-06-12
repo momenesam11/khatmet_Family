@@ -59,7 +59,7 @@ function KhatmaCompletionModal({
       <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
         <div className="h-1.5 bg-gradient-to-r from-emerald-500 to-emerald-700" />
 
-        <div className="space-y-5 p-8 text-center">
+        <div className="space-y-5 p-5 text-center sm:p-8">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-4 border-emerald-100 bg-emerald-50 text-4xl">
             🕌
           </div>
@@ -472,9 +472,9 @@ const sortedAssignments = [...assignments].sort((a, b) => {
     <main className="min-h-screen bg-slate-50 text-slate-900">
 
       {/* ── Mobile top header ───────────────────────────────────────────── */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
-        <p className="text-sm font-semibold text-slate-500">{family.name}</p>
-        <p className="text-lg font-black text-emerald-900">ختمة عيلة</p>
+      <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
+        <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-500">{family.name}</p>
+        <p className="shrink-0 text-base font-black text-emerald-900 sm:text-lg">ختمة عيلة</p>
         <div className="relative">
           <button
             onClick={() => setMobileMenuOpen((o) => !o)}
@@ -542,7 +542,7 @@ const sortedAssignments = [...assignments].sort((a, b) => {
           </div>
         </aside>
 
-        <section className="p-4 pb-24 lg:p-8 lg:pb-8">
+        <section className="p-4 pb-safe lg:p-8 lg:pb-8">
           <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 className="text-2xl font-black lg:text-3xl">لوحة التحكم</h1>
@@ -631,8 +631,32 @@ const sortedAssignments = [...assignments].sort((a, b) => {
             <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
               <Card>
                 <h2 className="mb-5 text-xl font-black">أفراد العيلة</h2>
-                <div className="overflow-auto rounded-2xl border border-slate-200">
-                  <table className="w-full min-w-[760px] text-right text-sm">
+
+                {/* Mobile card list */}
+                <div className="space-y-3 md:hidden">
+                  {members.map((member) => (
+                    <div key={member.id} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-bold text-slate-900">{member.name}</p>
+                        <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700">{member.level}</span>
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        <span className="font-semibold text-slate-600">واتساب: </span>
+                        {member.phone || "—"}
+                      </div>
+                      <Button variant="secondary" className="w-full" onClick={() => copyText(`${siteUrl}/member/${member.access_token}`)}>
+                        نسخ رابط العضو
+                      </Button>
+                    </div>
+                  ))}
+                  {members.length === 0 && (
+                    <p className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">لا يوجد أفراد بعد.</p>
+                  )}
+                </div>
+
+                {/* Desktop table */}
+                <div className="hidden overflow-auto rounded-2xl border border-slate-200 md:block">
+                  <table className="w-full min-w-[600px] text-right text-sm">
                     <thead className="bg-slate-50 text-slate-500">
                       <tr><th className="p-3">الاسم</th><th className="p-3">واتساب</th><th className="p-3">المستوى</th><th className="p-3">رابط العضو</th></tr>
                     </thead>
@@ -681,22 +705,49 @@ const sortedAssignments = [...assignments].sort((a, b) => {
 
           {activeTab === "tracking" && (
             <Card>
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-2xl font-black">{activePlan?.name || "المتابعة"}</h2>
-                  <p className="mt-1 text-slate-500">تابع مين قرأ ومين لسه.</p>
+                  <h2 className="text-xl font-black sm:text-2xl">{activePlan?.name || "المتابعة"}</h2>
+                  <p className="mt-1 text-sm text-slate-500">تابع مين قرأ ومين لسه.</p>
                 </div>
-                <Button variant="secondary" onClick={() => setActiveTab("messages")}>رسائل التذكير</Button>
+                <Button variant="secondary" className="w-full sm:w-auto" onClick={() => setActiveTab("messages")}>رسائل التذكير</Button>
               </div>
-              <div className="mb-6 grid gap-4 md:grid-cols-4">
+              <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
                 <MiniInfo label="نسبة الإنجاز" value={`${progress}%`} />
                 <MiniInfo label="تموا القراءة" value={completedCount} />
                 <MiniInfo label="اعتذروا اليوم" value={excusedCount} />
                 <MiniInfo label="متأخرين" value={delayedCount} />
               </div>
               <Progress value={progress} />
-              <div className="mt-6 overflow-auto rounded-2xl border border-slate-200">
-                <table className="w-full min-w-[760px] text-right text-sm">
+
+              {/* Mobile card list */}
+              <div className="mt-6 space-y-3 md:hidden">
+                {assignments.map((assignment) => (
+                  <div key={assignment.id} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-bold text-slate-900">{assignment.members?.name || "—"}</p>
+                      <StatusPill status={assignment.status} />
+                    </div>
+                    <p className="text-sm text-slate-600">
+                      <span className="font-semibold text-slate-700">ورد اليوم: </span>
+                      {assignment.reading_text}
+                    </p>
+                    {assignment.status === "assigned" && (
+                      <div className="flex gap-2">
+                        <Button variant="secondary" className="flex-1" onClick={() => updateAssignment(assignment.id, "done")}>تم</Button>
+                        <Button variant="ghost" className="flex-1" onClick={() => updateAssignment(assignment.id, "excused")}>اعتذار</Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {assignments.length === 0 && (
+                  <p className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">لا توجد أوراد حالياً.</p>
+                )}
+              </div>
+
+              {/* Desktop table */}
+              <div className="mt-6 hidden overflow-auto rounded-2xl border border-slate-200 md:block">
+                <table className="w-full min-w-[600px] text-right text-sm">
                   <thead className="bg-slate-50 text-slate-500">
                     <tr><th className="p-3">الفرد</th><th className="p-3">ورد اليوم</th><th className="p-3">الحالة</th><th className="p-3">الإجراء</th></tr>
                   </thead>
@@ -792,7 +843,7 @@ const sortedAssignments = [...assignments].sort((a, b) => {
       )}
 
       {/* ── Mobile bottom tab bar ────────────────────────────────────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-slate-200 bg-white lg:hidden" dir="rtl">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-slate-200 bg-white safe-bottom lg:hidden" dir="rtl">
         {tabs.map(([key, label, icon]) => (
           <button
             key={key}

@@ -224,15 +224,15 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 p-6 text-slate-900">
+    <main className="min-h-screen bg-slate-50 p-4 text-slate-900 sm:p-6">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-black">Admin Panel</h1>
-            <p className="mt-1 text-slate-500">مراجعة طلبات الدفع وتفعيل حسابات العملاء.</p>
+            <h1 className="text-2xl font-black sm:text-3xl">Admin Panel</h1>
+            <p className="mt-1 text-sm text-slate-500 sm:text-base">مراجعة طلبات الدفع وتفعيل حسابات العملاء.</p>
           </div>
-          <Link href="/dashboard">
-            <Button variant="secondary">لوحة العميل</Button>
+          <Link href="/dashboard" className="w-full sm:w-auto">
+            <Button variant="secondary" className="w-full sm:w-auto">لوحة العميل</Button>
           </Link>
         </div>
 
@@ -243,8 +243,95 @@ export default function AdminPage() {
         )}
 
         <Card>
-          <div className="overflow-auto">
-            <table className="w-full min-w-250 text-right text-sm">
+          {/* Mobile card list */}
+          <div className="space-y-4 lg:hidden">
+            {families.map((family) => {
+              const owner = profilesById.get(family.owner_id);
+              const latestPayment = latestPaymentByFamily.get(family.id);
+              const isRejecting = rejectingFamilyId === family.id;
+              const isLoading = actionLoading === family.id;
+
+              return (
+                <div key={family.id} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-bold text-slate-900">{family.name}</p>
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                        family.active ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+                      }`}
+                    >
+                      {family.active ? "مفعل" : "منتظر"}
+                    </span>
+                  </div>
+                  <div className="space-y-1.5 text-xs text-slate-600">
+                    <p><span className="font-semibold text-slate-700">العميل: </span>{owner?.full_name || "—"}</p>
+                    <p className="break-all"><span className="font-semibold text-slate-700">الإيميل: </span>{owner?.email || "—"}</p>
+                    <p><span className="font-semibold text-slate-700">طريقة الدفع: </span>
+                      {latestPayment?.method ? (methodLabels[latestPayment.method] || latestPayment.method) : "—"}
+                    </p>
+                    <p className="font-mono"><span className="font-sans font-semibold text-slate-700">رقم العملية: </span>{latestPayment?.reference || "—"}</p>
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="font-semibold text-slate-700">حالة الدفع:</span>
+                      <PaymentStatusPill status={family.payment_status} />
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {family.active ? (
+                      <Button variant="danger" onClick={() => handleDeactivate(family)} disabled={isLoading} className="flex-1 min-w-[120px]">
+                        {isLoading ? "..." : "إيقاف"}
+                      </Button>
+                    ) : (
+                      <>
+                        <Button onClick={() => handleApprove(family)} disabled={isLoading} className="flex-1 min-w-[120px]">
+                          {isLoading ? "..." : "تفعيل"}
+                        </Button>
+                        {(family.payment_status === "submitted" || family.payment_status === "pending") && (
+                          <Button
+                            variant="danger"
+                            onClick={() => {
+                              setRejectingFamilyId(isRejecting ? null : family.id);
+                              setRejectionReason("");
+                            }}
+                            disabled={isLoading}
+                            className="flex-1 min-w-[120px]"
+                          >
+                            رفض
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  {isRejecting && (
+                    <div className="space-y-2 rounded-xl border border-rose-100 bg-rose-50/60 p-3">
+                      <input
+                        type="text"
+                        value={rejectionReason}
+                        onChange={(e) => setRejectionReason(e.target.value)}
+                        placeholder="سبب الرفض (مثال: رقم العملية غير صحيح)"
+                        dir="rtl"
+                        className="w-full rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm text-right outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
+                      />
+                      <div className="flex gap-2">
+                        <Button variant="danger" onClick={() => handleReject(family)} disabled={!rejectionReason.trim() || isLoading} className="flex-1">
+                          {isLoading ? "..." : "تأكيد الرفض"}
+                        </Button>
+                        <button onClick={() => setRejectingFamilyId(null)} className="px-4 text-sm text-slate-500 hover:text-slate-700">
+                          إلغاء
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {families.length === 0 && (
+              <p className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">لا توجد عائلات حتى الآن.</p>
+            )}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden overflow-auto lg:block">
+            <table className="w-full min-w-[1000px] text-right text-sm">
               <thead className="bg-slate-50 text-slate-500">
                 <tr>
                   <th className="p-3">العيلة</th>
@@ -341,7 +428,7 @@ export default function AdminPage() {
                                 onChange={(e) => setRejectionReason(e.target.value)}
                                 placeholder="سبب الرفض (مثال: رقم العملية غير صحيح)"
                                 dir="rtl"
-                                className="flex-1 rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm text-right outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100 min-w-65"
+                                className="min-w-[200px] flex-1 rounded-xl border border-rose-200 bg-white px-4 py-2 text-sm text-right outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-100"
                               />
                               <Button
                                 variant="danger"

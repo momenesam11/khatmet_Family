@@ -93,7 +93,7 @@ export default function Home() {
           <div className="relative order-last lg:order-first flex flex-col items-center justify-center">
             
             {/* Soft Quran stand corner visual */}
-            <div className="absolute -right-12 -bottom-10 w-44 h-44 opacity-25 lg:opacity-75 z-0 pointer-events-none transition-all duration-300">
+            <div className="absolute -right-4 -bottom-6 w-28 h-28 opacity-20 sm:-right-8 sm:-bottom-8 sm:w-36 sm:h-36 sm:opacity-40 lg:-right-12 lg:-bottom-10 lg:w-44 lg:h-44 lg:opacity-75 z-0 pointer-events-none transition-all duration-300">
               <Image 
                 src="/quran_illustration.png" 
                 alt="قرآن كريم" 
@@ -358,7 +358,7 @@ export default function Home() {
             <div className="space-y-8 text-right order-first lg:order-last">
               <div className="space-y-3">
                 <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 inline-block">بساطة مطلقة للأعضاء</span>
-                <h2 className="text-3xl font-black text-emerald-950">
+                <h2 className="text-2xl font-black text-emerald-950 sm:text-3xl">
                   كل فرد يدخل من رابط بسيط
                 </h2>
                 <p className="text-slate-600 text-base sm:text-lg leading-relaxed font-medium">
@@ -422,7 +422,7 @@ export default function Home() {
             {/* Content (Right) */}
             <div className="space-y-6 text-right">
               <span className="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 inline-block">التحكم والترتيب للمسؤول</span>
-              <h2 className="text-3xl font-black text-slate-850">
+              <h2 className="text-2xl font-black text-slate-850 sm:text-3xl">
                 لوحة بسيطة لمسؤول العيلة
               </h2>
               <p className="text-slate-600 text-base sm:text-lg leading-relaxed font-medium">
@@ -672,9 +672,9 @@ export default function Home() {
               <p className="text-slate-600 text-xs sm:text-sm leading-relaxed font-semibold">
                 نؤمن يقيناً أن التقنية عندما توظف لخدمة كتاب الله عز وجل، يجب أن تفيض بالبركة وتتحلى بالصدق والأمانة والنية الواضحة. لذلك نلتزم باقتطاع جزء محدد من قيمة كل مساهمة رمزية تخرج كصدقة جارية بإذن الله لدعم المشاريع والجمعيات الخيرية.
               </p>
-              <div className="flex gap-2 text-xs font-bold text-amber-800 pt-1">
+              <div className="flex flex-wrap gap-x-2 gap-y-1 text-xs font-bold text-amber-800 pt-1">
                 <span>✦ شاركنا في الأجر</span>
-                <span>•</span>
+                <span className="hidden sm:inline">•</span>
                 <span>ختمة عيلتك سبب لخيرٍ مستمر للجميع</span>
               </div>
             </div>
@@ -714,11 +714,11 @@ export default function Home() {
           </div>
 
           {/* Minimal footer visual element */}
-          <div className="pt-10 max-w-sm mx-auto flex items-center justify-center gap-4 text-xs font-semibold text-slate-400">
+          <div className="pt-10 max-w-sm mx-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-semibold text-slate-400">
             <span>✓ تفعيل فوري للحساب</span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span>✓ ضمان استرداد 100%</span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span>✓ بدون التزام شهري</span>
           </div>
 

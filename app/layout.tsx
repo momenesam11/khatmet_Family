@@ -13,6 +13,12 @@ export const metadata: Metadata = {
   description: "خدمة دينية بسيطة ومحترمة تساعد العائلات على تقسيم ومتابعة ختمات القرآن الكريم بسهولة وبشكل منظم.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ar" dir="rtl" className={cairo.variable}>

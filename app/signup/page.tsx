@@ -56,6 +56,7 @@ export default function SignupPage() {
           <span>العودة للرئيسية</span>
         </Link>
 
+<<<<<<< HEAD
         {/* Brand */}
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white shadow shadow-emerald-950/10">
@@ -66,6 +67,16 @@ export default function SignupPage() {
             <span className="mr-2 rounded-full border border-amber-100 bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-600">
               بساطة وبركة
             </span>
+=======
+        {/* Brand Header */}
+        <div className="flex items-center gap-2.5 mb-6 sm:gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white shadow shadow-emerald-950/10 sm:h-10 sm:w-10">
+            <BookOpen className="h-5 w-5 text-amber-100" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-base font-black tracking-tight text-emerald-950 sm:text-lg">ختمة عيلة</span>
+            <span className="mr-1.5 hidden text-[9px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 min-[400px]:inline sm:mr-2">بساطة وبركة</span>
+>>>>>>> 472176dcd49dc79b720c04d7db6acb2323ef409d
           </div>
         </div>
 
