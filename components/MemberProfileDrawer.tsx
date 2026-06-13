@@ -39,7 +39,16 @@ type GroupedKhatma = {
   doneCount: number;
 };
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+function getMemberLink(token: string) {
+  return `${window.location.origin}/member/${token}`;
+}
+
+function openWhatsApp(phone: string | null | undefined, text: string) {
+  if (!phone) return;
+  const digits = phone.replace(/\D/g, "");
+  const normalized = digits.startsWith("0") ? "2" + digits : digits;
+  window.open(`https://wa.me/${normalized}?text=${encodeURIComponent(text)}`, "_blank");
+}
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("ar-SA", {
@@ -160,20 +169,34 @@ export function MemberProfileDrawer({
           </div>
         </div>
 
-        {/* Stats row + copy button */}
+        {/* Stats row + action buttons */}
         <div className="flex items-center gap-3 px-5 py-4">
-          <div className="rounded-2xl bg-emerald-50 px-5 py-3 text-center">
+          <div className="rounded-2xl bg-emerald-50 px-5 py-3 text-center shrink-0">
             <p className="text-2xl font-black text-emerald-900">{totalDone}</p>
             <p className="text-xs font-semibold text-emerald-700">صفحة مقروءة</p>
           </div>
-          <button
-            type="button"
-            onClick={() => onCopy(`${siteUrl}/member/${member.access_token}`)}
-            className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-white py-3 text-sm font-bold text-emerald-800 transition hover:bg-emerald-50"
-          >
-            <span>🔗</span>
-            نسخ رابط البوابة
-          </button>
+          <div className="flex flex-1 flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => onCopy(getMemberLink(member.access_token))}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-white py-2.5 text-sm font-bold text-emerald-800 transition hover:bg-emerald-50"
+            >
+              🔗 نسخ الرابط
+            </button>
+            {member.phone && (
+              <button
+                type="button"
+                onClick={() => {
+                  const link = getMemberLink(member.access_token);
+                  const text = `السلام عليكم يا ${member.name}، تفضل رابط بوابتك في ختمة العيلة: ${link}`;
+                  openWhatsApp(member.phone, text);
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-green-200 bg-green-50 py-2.5 text-sm font-bold text-green-800 transition hover:bg-green-100"
+              >
+                💬 إرسال عبر واتساب
+              </button>
+            )}
+          </div>
         </div>
 
         {loading ? (

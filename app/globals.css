@@ -2,16 +2,15 @@
 
 @theme {
   --font-sans: var(--font-cairo), ui-sans-serif, system-ui, sans-serif;
-  
-  /* Brand colors mapping */
-  --color-emerald-50: #ecfdf5;
+
+  --color-emerald-50:  #ecfdf5;
   --color-emerald-100: #d1fae5;
   --color-emerald-600: #059669;
   --color-emerald-700: #047857;
   --color-emerald-800: #065f46;
   --color-emerald-900: #064e3b;
-  
-  --color-amber-50: #fffbeb;
+
+  --color-amber-50:  #fffbeb;
   --color-amber-100: #fef3c7;
   --color-amber-200: #fde68a;
   --color-amber-500: #f59e0b;
@@ -19,13 +18,8 @@
   --color-amber-700: #b45309;
 }
 
-:root {
-  color-scheme: light;
-}
-
-* {
-  box-sizing: border-box;
-}
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
@@ -35,73 +29,125 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
-/* Safe area for notched phones + fixed bottom nav */
-.pb-safe {
-  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
-}
+.pb-safe { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 1024px) { .pb-safe { padding-bottom: 2rem; } }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+button, input, select, textarea { font-family: inherit; }
 
-@media (min-width: 1024px) {
-  .pb-safe {
-    padding-bottom: 2rem;
-  }
-}
-
-.safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-button,
-input,
-select,
-textarea {
-  font-family: inherit;
-}
-
-/* Custom premium styles */
+/* ── Islamic octagon grid background ── */
 .bg-islamic-grid {
   background-color: #FAF9F5;
-  background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0 L80 40 L40 80 L0 40 Z' fill='none' stroke='rgba(196,160,89,0.035)' stroke-width='1'/%3E%3Cpath d='M40 15 L65 40 L40 65 L15 40 Z' fill='none' stroke='rgba(196,160,89,0.02)' stroke-width='0.75'/%3E%3Ccircle cx='40' cy='40' r='2' fill='rgba(16,185,129,0.03)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='24,0 56,0 80,24 80,56 56,80 24,80 0,56 0,24' fill='none' stroke='rgba(4,120,87,0.045)' stroke-width='1'/%3E%3Cline x1='24' y1='0' x2='80' y2='56' stroke='rgba(4,120,87,0.025)' stroke-width='0.7'/%3E%3Cline x1='56' y1='0' x2='56' y2='80' stroke='rgba(4,120,87,0.025)' stroke-width='0.7'/%3E%3Cline x1='80' y1='24' x2='24' y2='80' stroke='rgba(4,120,87,0.025)' stroke-width='0.7'/%3E%3Cline x1='0' y1='56' x2='56' y2='0'  stroke='rgba(4,120,87,0.025)' stroke-width='0.7'/%3E%3Cline x1='0' y1='0'  x2='24' y2='0'  stroke='rgba(4,120,87,0.025)' stroke-width='0.7'/%3E%3Cline x1='0' y1='0'  x2='0'  y2='24' stroke='rgba(4,120,87,0.025)' stroke-width='0.7'/%3E%3C/svg%3E");
 }
 
 .bg-radial-gradient-glow {
-  background: radial-gradient(circle at 50% 50%, rgba(253, 246, 227, 0.8) 0%, rgba(250, 249, 245, 0) 70%);
+  background: radial-gradient(circle at 50% 50%, rgba(253,246,227,0.8) 0%, rgba(250,249,245,0) 70%);
 }
 
+/* ── Glass cards ── */
 .glass-card {
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255,255,255,0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 222, 210, 0.5);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.015);
+  border: 1px solid rgba(226,222,210,0.5);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.015);
 }
-
 .glass-card-emerald {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255,255,255,0.88);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(16, 185, 129, 0.08);
-  box-shadow: 0 10px 40px rgba(4, 120, 87, 0.02);
+  border: 1px solid rgba(16,185,129,0.08);
+  box-shadow: 0 10px 40px rgba(4,120,87,0.03);
 }
-
 .glass-card-gold {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255,255,255,0.88);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(196, 160, 89, 0.12);
-  box-shadow: 0 10px 40px rgba(180, 83, 9, 0.02);
+  border: 1px solid rgba(196,160,89,0.12);
+  box-shadow: 0 10px 40px rgba(180,83,9,0.02);
 }
 
-/* Beautiful custom scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
+/* ─────────────────────────────────────────────
+   ANIMATION KEYFRAMES
+───────────────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-::-webkit-scrollbar-track {
-  background: #FAF9F5;
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
-::-webkit-scrollbar-thumb {
-  background: #c2c9bf;
-  border-radius: 4px;
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #047857;
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
 }
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-7px) rotate(1.5deg); }
+  66%       { transform: translateY(-3px) rotate(-1deg); }
+}
+@keyframes float-reverse {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(7px); }
+}
+@keyframes sway {
+  0%, 100% { transform: rotate(-4deg); transform-origin: top center; }
+  50%       { transform: rotate(4deg);  transform-origin: top center; }
+}
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(4,120,87,0.28); }
+  50%       { box-shadow: 0 0 0 10px rgba(4,120,87,0); }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.12; transform: scale(1); }
+  50%       { opacity: 0.32; transform: scale(1.18); }
+}
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes spin-reverse {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* ─────────────────────────────────────────────
+   SCROLL REVEAL
+───────────────────────────────────────────── */
+.reveal,
+.reveal-left,
+.reveal-right,
+.reveal-scale {
+  opacity: 0;
+  transition: opacity 0.68s cubic-bezier(0.4,0,0.2,1),
+              transform 0.68s cubic-bezier(0.4,0,0.2,1);
+}
+.reveal       { transform: translateY(28px); }
+.reveal-left  { transform: translateX(-28px); }
+.reveal-right { transform: translateX(28px); }
+.reveal-scale { transform: scale(0.95) translateY(16px); }
+
+.reveal.visible,
+.reveal-left.visible,
+.reveal-right.visible,
+.reveal-scale.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ─────────────────────────────────────────────
+   SCROLLBAR
+───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #FAF9F5; }
+::-webkit-scrollbar-thumb { background: #c2c9bf; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #047857; }

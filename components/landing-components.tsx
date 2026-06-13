@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   BookOpen, 
   CheckCircle2, 
@@ -518,5 +518,177 @@ export function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   SCROLL REVEAL — فيد أي عنصر بـ IntersectionObserver
+═══════════════════════════════════════════════════════ */
+export function ScrollReveal({
+  children,
+  className = "",
+  animation = "reveal",
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  animation?: "reveal" | "reveal-left" | "reveal-right" | "reveal-scale";
+  delay?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add("visible");
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`${animation} ${className}`}
+      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   ISLAMIC BACKGROUND — فوانيس + نجوم + مسجد + هلال
+═══════════════════════════════════════════════════════ */
+function IslamicLantern({ size = 110, opacity = 0.18 }: { size?: number; opacity?: number }) {
+  const c = "#8B6914";
+  const s = size; const h = s * 1.85;
+  return (
+    <svg width={s} height={h} viewBox="0 0 110 204" fill="none" style={{ opacity }}>
+      <line x1="55" y1="0" x2="55" y2="20" stroke={c} strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M40 20 Q55 15 70 20 L73 29 Q55 23 37 29 Z" fill="none" stroke={c} strokeWidth="1.2"/>
+      <ellipse cx="55" cy="29" rx="18" ry="4.5" fill="none" stroke={c} strokeWidth="1.2"/>
+      <path d="M37 29 Q30 48 28 65 L82 65 Q80 48 73 29 Z" fill="none" stroke={c} strokeWidth="1.2"/>
+      <ellipse cx="55" cy="65" rx="27" ry="6" fill="none" stroke={c} strokeWidth="1.2"/>
+      <path d="M28 65 Q20 93 23 120 L87 120 Q90 93 82 65 Z" fill="none" stroke={c} strokeWidth="1.2"/>
+      <path d="M35 74 Q37 66 42 72 Q47 78 41 84 Z" fill="none" stroke={c} strokeWidth="0.9"/>
+      <path d="M52 70 Q55 62 58 70 Q61 78 55 82 Z" fill="none" stroke={c} strokeWidth="0.9"/>
+      <path d="M68 74 Q73 66 75 72 Q77 78 71 84 Z" fill="none" stroke={c} strokeWidth="0.9"/>
+      <ellipse cx="55" cy="120" rx="32" ry="6.5" fill="none" stroke={c} strokeWidth="1.2"/>
+      <path d="M23 120 Q25 138 31 149 L79 149 Q85 138 87 120 Z" fill="none" stroke={c} strokeWidth="1.2"/>
+      <path d="M31 149 Q55 155 79 149 L74 159 Q55 165 36 159 Z" fill="none" stroke={c} strokeWidth="1.2"/>
+      <ellipse cx="55" cy="159" rx="19" ry="4.5" fill="none" stroke={c} strokeWidth="1.2"/>
+      <line x1="44" y1="163" x2="41" y2="181" stroke={c} strokeWidth="1" strokeLinecap="round"/>
+      <line x1="55" y1="163" x2="55" y2="185" stroke={c} strokeWidth="1" strokeLinecap="round"/>
+      <line x1="66" y1="163" x2="69" y2="181" stroke={c} strokeWidth="1" strokeLinecap="round"/>
+      <circle cx="41" cy="183" r="2" fill={c} opacity="0.6"/>
+      <circle cx="55" cy="187" r="2" fill={c} opacity="0.6"/>
+      <circle cx="69" cy="183" r="2" fill={c} opacity="0.6"/>
+      <ellipse cx="55" cy="96" rx="18" ry="20" fill={c} opacity="0.04"/>
+    </svg>
+  );
+}
+
+function CrescentMoon({ size = 60, opacity = 0.15 }: { size?: number; opacity?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 60 60" fill="none" style={{ opacity }}>
+      <path d="M38 8 A24 24 0 1 1 22 52 A18 18 0 1 0 38 8 Z" fill="none" stroke="#047857" strokeWidth="1.5"/>
+      <circle cx="46" cy="12" r="2.5" fill="#047857" opacity="0.6"/>
+      <circle cx="50" cy="22" r="1.5" fill="#047857" opacity="0.45"/>
+    </svg>
+  );
+}
+
+function TinyStar({ size = 12, opacity = 0.2 }: { size?: number; opacity?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 14 14" fill="none" style={{ opacity }}>
+      <polygon points="7,0 8.3,4.7 13,7 8.3,9.3 7,14 5.7,9.3 1,7 5.7,4.7" fill="#047857"/>
+    </svg>
+  );
+}
+
+export function IslamicBackground() {
+  return (
+    <div className="pointer-events-none select-none fixed inset-0 overflow-hidden" style={{ zIndex: -10 }} aria-hidden>
+
+      {/* Soft radial glow */}
+      <div className="absolute inset-0" style={{
+        background: `
+          radial-gradient(ellipse 65% 45% at 12% 18%, rgba(4,120,87,0.04) 0%, transparent 55%),
+          radial-gradient(ellipse 55% 45% at 88% 72%, rgba(4,120,87,0.035) 0%, transparent 55%)
+        `
+      }}/>
+
+      {/* Mosque silhouette — bottom center */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-3xl opacity-[0.05]">
+        <svg viewBox="0 0 900 380" fill="none" className="w-full">
+          <path d="M450 380 L450 210 Q450 95 380 58 Q310 95 310 210 L310 380 Z" fill="#047857"/>
+          <ellipse cx="380" cy="58" rx="22" ry="30" fill="#047857"/>
+          <line x1="380" y1="28" x2="380" y2="8" stroke="#047857" strokeWidth="4" strokeLinecap="round"/>
+          <rect x="165" y="155" width="28" height="225" rx="4" fill="#047857"/>
+          <path d="M165 155 Q179 108 193 155 Z" fill="#047857"/>
+          <rect x="707" y="155" width="28" height="225" rx="4" fill="#047857"/>
+          <path d="M707 155 Q721 108 735 155 Z" fill="#047857"/>
+          <path d="M310 380 L310 278 Q310 235 278 218 Q246 235 246 278 L246 380 Z" fill="#047857" opacity="0.65"/>
+          <path d="M450 380 L450 278 Q450 235 482 218 Q514 235 514 278 L514 380 Z" fill="#047857" opacity="0.65"/>
+          <rect x="65" y="362" width="770" height="18" rx="2" fill="#047857" opacity="0.4"/>
+          {[90,145,200,255,310,365,420,475,530,585,640,695,750].map((x, i) => (
+            <path key={i} d={`M${x} 362 L${x} 348 Q${x+27} 334 ${x+54} 348 L${x+54} 362 Z`} fill="#047857" opacity="0.22"/>
+          ))}
+        </svg>
+      </div>
+
+      {/* Left lantern — big */}
+      <div className="absolute top-0 left-[2%] hidden lg:block"
+        style={{ animation: "sway 5.5s ease-in-out infinite" }}>
+        <IslamicLantern size={105} opacity={0.16}/>
+      </div>
+      {/* Left lantern — small */}
+      <div className="absolute top-0 left-[9%] hidden lg:block"
+        style={{ animation: "sway 7s ease-in-out infinite", animationDelay: "1.4s" }}>
+        <IslamicLantern size={68} opacity={0.1}/>
+      </div>
+      {/* Right lantern — big */}
+      <div className="absolute top-0 right-[2%] hidden lg:block"
+        style={{ animation: "sway 6s ease-in-out infinite", animationDelay: "0.7s" }}>
+        <IslamicLantern size={105} opacity={0.16}/>
+      </div>
+      {/* Right lantern — small */}
+      <div className="absolute top-0 right-[9%] hidden lg:block"
+        style={{ animation: "sway 8s ease-in-out infinite", animationDelay: "2s" }}>
+        <IslamicLantern size={68} opacity={0.1}/>
+      </div>
+
+      {/* Crescent moon */}
+      <div className="absolute top-[7%] right-[19%] hidden lg:block"
+        style={{ animation: "float-slow 9s ease-in-out infinite" }}>
+        <CrescentMoon size={68} opacity={0.14}/>
+      </div>
+
+      {/* Scattered tiny stars */}
+      {[
+        { t:"10%", l:"26%", s:10, d:"0s",   dur:"5s"  },
+        { t:"16%", l:"71%", s:8,  d:"1s",   dur:"7s"  },
+        { t:"7%",  l:"54%", s:12, d:"2s",   dur:"6s"  },
+        { t:"33%", l:"4%",  s:8,  d:"0.5s", dur:"8s"  },
+        { t:"58%", l:"91%", s:10, d:"1.5s", dur:"6s"  },
+        { t:"72%", l:"14%", s:8,  d:"3s",   dur:"9s"  },
+        { t:"28%", l:"87%", s:10, d:"1s",   dur:"5.5s"},
+        { t:"82%", l:"58%", s:7,  d:"0s",   dur:"8s"  },
+      ].map((st, i) => (
+        <div key={i} className="absolute"
+          style={{ top: st.t, left: st.l, animation: `twinkle ${st.dur} ease-in-out infinite`, animationDelay: st.d }}>
+          <TinyStar size={st.s} opacity={0.18}/>
+        </div>
+      ))}
+
+    </div>
   );
 }
