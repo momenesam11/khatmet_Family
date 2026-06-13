@@ -44,7 +44,7 @@ export function KhatmaGrid({ assignments }: KhatmaGridProps) {
         if (assignment.status === "done") {
           bgColor =
             "bg-emerald-700 text-white hover:bg-emerald-800 border-emerald-800";
-          statusText = "تمت القراءة ✓";
+          statusText = "تمت القراءة";
         } else if (assignment.status === "excused") {
           bgColor =
             "bg-rose-200 text-rose-950 hover:bg-rose-300 border-rose-300";
@@ -74,7 +74,6 @@ export function KhatmaGrid({ assignments }: KhatmaGridProps) {
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm" dir="rtl">
-      {/* Header */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-base sm:text-lg font-black text-slate-900">

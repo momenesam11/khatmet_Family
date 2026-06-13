@@ -1,22 +1,66 @@
+# Dependencies
 node_modules
-.next
-.vercel
+.pnp
+.pnp.js
 
+# Build output
+.next
+out
+dist
+build
+
+# Environment & secrets — NEVER commit these
 .env
 .env.local
-.env.production
 .env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
 
-.DS_Store
+# Private keys & certificates
+*.pem
+*.key
+*.cert
+*.p12
+*.pfx
+id_rsa
+id_rsa.pub
+
+# Vercel
+.vercel
+
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# OS artefacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor directories
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Supabase migrations & schema (contain sensitive DB structure)
 supabase/schema.sql
-supabase/migrations/001_add_payment_fields.sql
-.gitignore
-supabase/migrations/004_add_end_page_and_extra_ward.sql
-.gitignore
-supabase/migrations/003_add_khatmas_completed.sql
-supabase/migrations/002_add_families_tracking_columns.sql
-supabase/schema.sql
+supabase/migrations/
+
+# Test coverage
+coverage
+.nyc_output
+
+# TypeScript cache
+*.tsbuildinfo
+tsconfig.tsbuildinfo

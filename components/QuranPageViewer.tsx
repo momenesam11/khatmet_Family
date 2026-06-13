@@ -63,7 +63,6 @@ export default function QuranPageViewer({ pageNumber }: Props) {
       dir="rtl"
       className="overflow-hidden rounded-3xl border border-amber-200/70 bg-[#FFFDF5] shadow-sm"
     >
-      {/* ── Page header ─────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between border-b border-amber-200/50 px-5 py-3">
         <a
           href={externalUrl}
@@ -78,7 +77,6 @@ export default function QuranPageViewer({ pageNumber }: Props) {
         </span>
       </div>
 
-      {/* ── Content area ─────────────────────────────────────────────────── */}
       <div className="px-5 py-6">
         {status === "loading" && <PageSkeleton />}
 
@@ -113,7 +111,6 @@ export default function QuranPageViewer({ pageNumber }: Props) {
         )}
       </div>
 
-      {/* ── Page footer ──────────────────────────────────────────────────── */}
       {status === "ok" && (
         <div className="border-t border-amber-200/50 px-5 py-3 text-center">
           <span className="text-[10px] font-medium text-amber-700/60">

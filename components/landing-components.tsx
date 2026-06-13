@@ -23,7 +23,6 @@ import {
   ArrowRightLeft
 } from "lucide-react";
 
-// --- Header/Navbar ---
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -40,18 +39,13 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 glass-card border-b border-amber-900/5 bg-white/80 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between sm:h-20">
-          {/* Right: Brand Logo */}
-          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-800 shadow-md shadow-emerald-900/10 sm:h-11 sm:w-11 sm:rounded-2xl">
-              <BookOpen className="h-5 w-5 text-amber-100 sm:h-6 sm:w-6" />
+          <a href="/" className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+            <img src="/logo.png" alt="ختمة عيلة" className="h-10 w-10 shrink-0 sm:h-12 sm:w-12 object-contain" />
+            <div className="min-w-0 hidden sm:block">
+              <span className="text-lg font-black tracking-tight text-emerald-900 font-sans">ختمة عيلة</span>
             </div>
-            <div className="min-w-0">
-              <span className="text-base font-black tracking-tight text-emerald-900 font-sans sm:text-xl">ختمة عيلة</span>
-              <span className="mr-1.5 hidden text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100 min-[400px]:inline sm:mr-2">خدمة عائلية</span>
-            </div>
-          </div>
+          </a>
 
-          {/* Center: Desktop Navigation Links */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <a
@@ -64,7 +58,6 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* Left: Desktop CTA Buttons */}
           <div className="hidden md:flex items-center gap-3">
             <a
               href="/login"
@@ -80,7 +73,6 @@ export function Navbar() {
             </a>
           </div>
 
-          {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -93,7 +85,6 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
       {isOpen && (
         <>
         <div className="fixed inset-0 z-40 bg-black/20 md:hidden" onClick={() => setIsOpen(false)} aria-hidden="true" />
@@ -133,11 +124,9 @@ export function Navbar() {
   );
 }
 
-// --- WhatsApp Message Chat Bubble ---
 export function WhatsAppMessageCard({ className = "" }: { className?: string }) {
   return (
     <div className={`rounded-2xl bg-[#E8F8F2] border border-[#d2efe2] p-4 shadow-sm relative text-right max-w-sm ${className}`}>
-      {/* Small WhatsApp Header */}
       <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-emerald-950/5">
         <div className="h-6 w-6 rounded-full bg-emerald-600 flex items-center justify-center text-white">
           <MessageCircle className="h-3.5 w-3.5 fill-white" />
@@ -146,18 +135,15 @@ export function WhatsAppMessageCard({ className = "" }: { className?: string }) 
         <span className="mr-auto text-[9px] text-slate-400">8:30 ص</span>
       </div>
       
-      {/* Message Content */}
       <p className="text-[13px] leading-relaxed text-slate-700 font-medium">
-        السلام عليكم، تذكير هادئ بورد اليوم من صفحة <span className="font-bold text-emerald-900 bg-white/70 px-1 rounded">43</span> إلى <span className="font-bold text-emerald-900 bg-white/70 px-1 rounded">45</span>، جزاك الله خيرًا. 🌸
+        السلام عليكم، تذكير هادئ بورد اليوم من صفحة <span className="font-bold text-emerald-900 bg-white/70 px-1 rounded">43</span> إلى <span className="font-bold text-emerald-900 bg-white/70 px-1 rounded">45</span>، جزاك الله خيرًا.
       </p>
       
-      {/* Bottom Triangle Indicator mimicking chat speech bubble */}
       <div className="absolute right-4 -bottom-2 w-3 h-3 bg-[#E8F8F2] border-r border-b border-[#d2efe2] transform rotate-45"></div>
     </div>
   );
 }
 
-// --- Dashboard Mockup ---
 export function DashboardMockup({ className = "" }: { className?: string }) {
   const [members, setMembers] = useState([
     { name: "أحمد", status: "read", range: "من صفحة 42 إلى 43" },
@@ -166,7 +152,6 @@ export function DashboardMockup({ className = "" }: { className?: string }) {
     { name: "سارة", status: "excused", range: "من صفحة 48 إلى 49" },
   ]);
 
-  // Simulate marking a member as read
   const toggleMemberStatus = (index: number) => {
     const updated = [...members];
     if (updated[index].status === "unread") {
@@ -190,7 +175,6 @@ export function DashboardMockup({ className = "" }: { className?: string }) {
     }
   };
 
-  // Calculate statistics dynamically
   const total = members.length;
   const readCount = members.filter(m => m.status === "read").length;
   const progressPercent = Math.round((readCount / total) * 100);
@@ -201,7 +185,6 @@ export function DashboardMockup({ className = "" }: { className?: string }) {
       <div className="absolute -left-16 -top-16 h-36 w-36 rounded-full bg-emerald-500/5 blur-xl pointer-events-none" />
       
       <div className="relative space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
             <p className="text-[11px] font-bold text-emerald-700/80 bg-emerald-50 px-2 py-0.5 rounded-full inline-block">لوحة مسؤول العيلة</p>
@@ -269,7 +252,6 @@ export function DashboardMockup({ className = "" }: { className?: string }) {
   );
 }
 
-// --- Interactive Mobile Mockup for Member Experience ---
 export function MemberExperienceMockup() {
   const [status, setStatus] = useState<"idle" | "read" | "excused">("idle");
 
@@ -383,14 +365,13 @@ export function MemberExperienceMockup() {
 
         {/* Brand Signoff */}
         <div className="border-t border-slate-100 pt-3 text-center">
-          <p className="text-[9px] text-slate-400 font-medium">خطوة واحدة بسيطة • ختمة عيلة 🕊️</p>
+          <p className="text-[9px] text-slate-400 font-medium">خطوة واحدة بسيطة • ختمة عيلة</p>
         </div>
       </div>
     </div>
   );
 }
 
-// --- Interactive FAQ Accordion ---
 export function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
@@ -422,7 +403,7 @@ export function FAQSection() {
       <div className="text-center space-y-3 mb-12">
         <span className="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">الإجابات المباشرة</span>
         <h2 className="text-2xl font-black text-slate-800 sm:text-3xl">الأسئلة الشائعة</h2>
-        <p className="text-slate-500 max-w-xl mx-auto text-sm">كل ما تود معرفته عن طريقة عمل ختمة عيلة والاشتراك الرمزي.</p>
+        <p className="text-slate-500 max-w-xl mx-auto text-sm">كل ما تود معرفته عن طريقة عمل ختمة عيلة.</p>
       </div>
 
       <div className="space-y-4">
@@ -456,7 +437,6 @@ export function FAQSection() {
   );
 }
 
-// --- Footer ---
 export function Footer() {
   return (
     <footer className="bg-emerald-950 text-white border-t border-emerald-900 py-16 text-right">
@@ -475,9 +455,9 @@ export function Footer() {
               خدمة بسيطة ومحترمة تساعد العائلات على الاستمرار في ختمة القرآن الكريم بشكل منظم وبكل راحة، وبدون إحراج أو عشوائية في المتابعة اليومية.
             </p>
             <div className="pt-2 flex flex-wrap gap-2 text-xs font-bold">
-              <span className="bg-emerald-900/60 text-emerald-300 px-3 py-1 rounded-full border border-emerald-800">✓ خصوصية وأمان</span>
-              <span className="bg-emerald-900/60 text-emerald-300 px-3 py-1 rounded-full border border-emerald-800">✓ بدون إعلانات</span>
-              <span className="bg-emerald-900/60 text-amber-300 px-3 py-1 rounded-full border border-emerald-800">✓ جزء من الاشتراك صدقة</span>
+              <span className="bg-emerald-900/60 text-emerald-300 px-3 py-1 rounded-full border border-emerald-800">خصوصية وأمان</span>
+              <span className="bg-emerald-900/60 text-emerald-300 px-3 py-1 rounded-full border border-emerald-800">بدون إعلانات</span>
+              <span className="bg-emerald-900/60 text-amber-300 px-3 py-1 rounded-full border border-emerald-800">جزء من التبرعات صدقة</span>
             </div>
           </div>
 
@@ -488,7 +468,7 @@ export function Footer() {
               <li><a href="#" className="hover:text-amber-200 transition">الرئيسية</a></li>
               <li><a href="#features" className="hover:text-amber-200 transition">المزايا والمواصفات</a></li>
               <li><a href="#how-it-works" className="hover:text-amber-200 transition">كيف يعمل التطبيق؟</a></li>
-              <li><a href="#pricing" className="hover:text-amber-200 transition">الأسعار والباقات</a></li>
+              <li><a href="/payment-pending" className="hover:text-amber-200 transition">ادعم المشروع</a></li>
               <li><a href="#faq" className="hover:text-amber-200 transition">الأسئلة الشائعة</a></li>
             </ul>
           </div>
@@ -497,7 +477,7 @@ export function Footer() {
           <div className="space-y-4">
             <h4 className="text-amber-100 font-bold text-base">عن الخدمة</h4>
             <p className="text-emerald-200/60 text-xs leading-relaxed font-medium">
-              الاشتراك رمزي لمرة واحدة لتغطية مصاريف الاستضافة والصيانة، مع تخصيص جزء من كل اشتراك كصدقة جارية بإذن الله لدعم القرآن وأهله.
+              ختمة عيلة مجانية بالكامل. بتشتغل بتبرعات طوعية من أهلها، وجزء من كل تبرع يخرج صدقة جارية بإذن الله.
             </p>
             <div className="pt-3 border-t border-emerald-900 text-[10px] text-emerald-200/40">
               جميع الحقوق محفوظة © {new Date().getFullYear()} ختمة عيلة.
@@ -521,9 +501,6 @@ export function Footer() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   SCROLL REVEAL — فيد أي عنصر بـ IntersectionObserver
-═══════════════════════════════════════════════════════ */
 export function ScrollReveal({
   children,
   className = "",
@@ -564,9 +541,6 @@ export function ScrollReveal({
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   ISLAMIC BACKGROUND — فوانيس + نجوم + مسجد + هلال
-═══════════════════════════════════════════════════════ */
 function IslamicLantern({ size = 110, opacity = 0.18 }: { size?: number; opacity?: number }) {
   const c = "#8B6914";
   const s = size; const h = s * 1.85;

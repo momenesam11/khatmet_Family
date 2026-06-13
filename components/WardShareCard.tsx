@@ -134,10 +134,9 @@ export function WardShareCard({ familyName, planName, assignments }: WardShareCa
             {/* Inner elegant border */}
             <div className="absolute inset-2.5 rounded-[22px] border border-amber-400/10 pointer-events-none" />
 
-            {/* Header */}
             <div className="mb-6 text-center relative z-10">
               <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">
-                🕌 ختمة عيلة
+                ختمة عيلة
               </span>
               <h2 className="mt-4 text-2xl font-black text-white drop-shadow-sm">
                 ورد عائلة {familyName}
@@ -179,7 +178,7 @@ export function WardShareCard({ familyName, planName, assignments }: WardShareCa
                           : "bg-white/10 text-white/80 border-white/10"
                       }`}
                     >
-                      {isDone ? "✓ قُرئ" : isExcused ? "اعتذر" : "لم يقرأ"}
+                      {isDone ? "قُرئ" : isExcused ? "اعتذر" : "لم يقرأ"}
                     </span>
                   </div>
                 );
@@ -195,7 +194,7 @@ export function WardShareCard({ familyName, planName, assignments }: WardShareCa
             {/* Footer */}
             <div className="mt-6 text-center relative z-10 border-t border-white/10 pt-4">
               <p className="text-[10px] font-bold text-amber-400">
-                نجمع العيلة على القرآن الكريم 🤍
+                نجمع العيلة على القرآن الكريم
               </p>
               <p className="mt-0.5 text-[8px] text-white/40">
                 khatma-aaila.com

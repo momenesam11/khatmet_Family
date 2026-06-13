@@ -19,7 +19,6 @@ import {
   Trash2,
 } from "lucide-react";
 
-// ── Purpose options ───────────────────────────────────────────────────────────
 const PURPOSES = [
   { key: "family_ongoing", label: "ختمة عائلية مستمرة",          icon: Users,      desc: "توزيع يومي متتالي لختم القرآن باستمرار" },
   { key: "deceased",       label: "ختمة على روح متوفّى",          icon: Heart,      desc: "صدقة جارية ودعاء لروح فقيد غالٍ" },
@@ -30,14 +29,12 @@ const PURPOSES = [
 
 type PurposeKey = (typeof PURPOSES)[number]["key"];
 
-// ── Pending member (local state only, before DB insert) ───────────────────────
 type PendingMember = { tempId: string; name: string; phone: string };
 
 function makeTempId() {
   return Math.random().toString(36).slice(2);
 }
 
-// ── Shared button primitive (avoids importing full Button for inline variants) ─
 function Btn({
   children, onClick, disabled = false, variant = "primary", type = "button", className = "",
 }: {
@@ -66,7 +63,6 @@ function Btn({
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
 export default function OnboardingSetupPage() {
   const router   = useRouter();
   const nameRef  = useRef<HTMLInputElement>(null);
@@ -95,7 +91,6 @@ export default function OnboardingSetupPage() {
   const [newPhone,      setNewPhone]     = useState("");
   const [memberError,   setMemberError]  = useState("");
 
-  // ── Auth check ──────────────────────────────────────────────────────────────
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) { router.push("/login"); return; }
@@ -114,7 +109,6 @@ export default function OnboardingSetupPage() {
     });
   }, [router]);
 
-  // ── Member helpers ──────────────────────────────────────────────────────────
   function addSelf() {
     if (selfAdded) return;
     setMembers(prev => [...prev, { tempId: makeTempId(), name: userFullName || "أنت", phone: "" }]);
@@ -138,7 +132,6 @@ export default function OnboardingSetupPage() {
     if (removed && removed.name === (userFullName || "أنت")) setSelfAdded(false);
   }
 
-  // ── Navigation ──────────────────────────────────────────────────────────────
   function next() {
     setError("");
 
@@ -153,7 +146,6 @@ export default function OnboardingSetupPage() {
     setStep(s => s + 1);
   }
 
-  // ── Submit ──────────────────────────────────────────────────────────────────
   async function handleSubmit() {
     if (members.length === 0) { setError("يرجى إضافة فرد واحد على الأقل."); return; }
     setError("");
@@ -224,7 +216,6 @@ export default function OnboardingSetupPage() {
     }
   }
 
-  // ── Loading ─────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <main className="grid min-h-screen place-items-center bg-islamic-grid p-6">
@@ -236,7 +227,6 @@ export default function OnboardingSetupPage() {
     );
   }
 
-  // ── Already done ─────────────────────────────────────────────────────────────
   if (hasFamily) {
     return (
       <main className="grid min-h-screen place-items-center bg-islamic-grid p-4 font-sans" dir="rtl">
@@ -265,7 +255,6 @@ export default function OnboardingSetupPage() {
   const selectedPurpose = PURPOSES.find(p => p.key === purposeKey) ?? PURPOSES[0];
   const TOTAL_STEPS = 4;
 
-  // ── Wizard ───────────────────────────────────────────────────────────────────
   return (
     <main
       className="grid min-h-screen place-items-center bg-islamic-grid p-4 sm:p-6 font-sans antialiased"
@@ -274,7 +263,6 @@ export default function OnboardingSetupPage() {
       <Card className="relative flex w-full max-w-2xl flex-col overflow-hidden border border-slate-200/60 p-6 shadow-xl sm:p-8">
         <div className="pointer-events-none absolute -left-12 -top-12 h-32 w-32 rounded-full bg-emerald-500/5 blur-xl" />
 
-        {/* ── Header ── */}
         <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
           <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-800">
             {step} / {TOTAL_STEPS}
@@ -285,7 +273,6 @@ export default function OnboardingSetupPage() {
           </div>
         </div>
 
-        {/* ── Progress bar ── */}
         <div className="mb-8 flex gap-1.5">
           {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
             <span
@@ -298,9 +285,6 @@ export default function OnboardingSetupPage() {
           ))}
         </div>
 
-        {/* ══════════════════════════════════════════════════════════════════════
-            STEP 1 — WELCOME
-        ══════════════════════════════════════════════════════════════════════ */}
         {step === 1 && (
           <div className="animate-in fade-in slide-in-from-bottom-2 space-y-6 py-4 text-center duration-300">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-emerald-50 to-emerald-100 shadow-inner">
@@ -308,7 +292,7 @@ export default function OnboardingSetupPage() {
             </div>
             <div className="space-y-2">
               <h2 className="text-2xl font-black text-slate-800 sm:text-3xl">
-                أهلاً بك في ختمة عيلة 🕊️
+                أهلاً بك في ختمة عيلة
               </h2>
               <p className="mx-auto max-w-sm text-sm font-medium leading-relaxed text-slate-500">
                 سنساعدك على إعداد أول ختمة لعيلتك في ثلاث خطوات بسيطة.
@@ -322,9 +306,6 @@ export default function OnboardingSetupPage() {
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════════
-            STEP 2 — اسم العيلة + نية الختمة
-        ══════════════════════════════════════════════════════════════════════ */}
         {step === 2 && (
           <div className="animate-in fade-in slide-in-from-bottom-2 space-y-6 duration-300">
             <div>
@@ -394,9 +375,6 @@ export default function OnboardingSetupPage() {
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════════
-            STEP 3 — أفراد العيلة
-        ══════════════════════════════════════════════════════════════════════ */}
         {step === 3 && (
           <div className="animate-in fade-in slide-in-from-bottom-2 space-y-5 duration-300">
             <div>
@@ -498,9 +476,6 @@ export default function OnboardingSetupPage() {
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════════
-            STEP 4 — ملخص + submit
-        ══════════════════════════════════════════════════════════════════════ */}
         {step === 4 && (
           <div className="animate-in fade-in slide-in-from-bottom-2 space-y-5 duration-300">
             <div>
@@ -554,7 +529,6 @@ export default function OnboardingSetupPage() {
           </div>
         )}
 
-        {/* ── Navigation ── */}
         <div className="mt-8 flex items-center justify-between gap-3 border-t border-slate-100 pt-5">
           {/* Back */}
           {step > 1 ? (
@@ -584,7 +558,7 @@ export default function OnboardingSetupPage() {
                 </>
               ) : (
                 <>
-                  ابدأ الختمة 🕌
+                  ابدأ الختمة
                   <ArrowLeft className="h-4 w-4" />
                 </>
               )}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { StatusPill } from "@/components/ui";
+import { X, Send, Link2 } from "lucide-react";
 
 type Member = {
   id: string;
@@ -95,7 +96,6 @@ export function MemberProfileDrawer({
       });
   }, [member.id]);
 
-  // Group by plan
   const grouped: GroupedKhatma[] = [];
   const seen = new Map<string, GroupedKhatma>();
   for (const a of assignments) {
@@ -124,7 +124,6 @@ export function MemberProfileDrawer({
     });
   }
 
-  // Close on Escape
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
@@ -135,22 +134,18 @@ export function MemberProfileDrawer({
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Drawer: bottom sheet on mobile, right side panel on desktop */}
       <div
         dir="rtl"
         className="fixed bottom-0 left-0 right-0 z-50 max-h-[90dvh] overflow-y-auto rounded-t-3xl bg-white shadow-2xl
                    lg:bottom-0 lg:left-auto lg:right-0 lg:top-0 lg:h-screen lg:w-[420px] lg:rounded-none lg:rounded-l-3xl lg:max-h-screen"
       >
-        {/* Pull handle — mobile only */}
         <div className="mx-auto mt-3 h-1 w-12 rounded-full bg-slate-200 lg:hidden" />
 
-        {/* Header */}
         <div className="flex items-start justify-between border-b border-slate-100 p-5">
           <button
             type="button"
@@ -158,7 +153,7 @@ export function MemberProfileDrawer({
             className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
             aria-label="إغلاق"
           >
-            ✕
+            <X className="h-4 w-4" />
           </button>
           <div className="text-right">
             <h2 className="text-xl font-black text-slate-900">{member.name}</h2>
@@ -169,7 +164,6 @@ export function MemberProfileDrawer({
           </div>
         </div>
 
-        {/* Stats row + action buttons */}
         <div className="flex items-center gap-3 px-5 py-4">
           <div className="rounded-2xl bg-emerald-50 px-5 py-3 text-center shrink-0">
             <p className="text-2xl font-black text-emerald-900">{totalDone}</p>
@@ -181,7 +175,7 @@ export function MemberProfileDrawer({
               onClick={() => onCopy(getMemberLink(member.access_token))}
               className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-white py-2.5 text-sm font-bold text-emerald-800 transition hover:bg-emerald-50"
             >
-              🔗 نسخ الرابط
+              <Link2 className="h-3.5 w-3.5" /> نسخ الرابط
             </button>
             {member.phone && (
               <button
@@ -193,7 +187,7 @@ export function MemberProfileDrawer({
                 }}
                 className="flex w-full items-center justify-center gap-2 rounded-2xl border border-green-200 bg-green-50 py-2.5 text-sm font-bold text-green-800 transition hover:bg-green-100"
               >
-                💬 إرسال عبر واتساب
+                <Send className="h-3.5 w-3.5" /> إرسال عبر واتساب
               </button>
             )}
           </div>
@@ -203,7 +197,6 @@ export function MemberProfileDrawer({
           <p className="p-8 text-center text-sm text-slate-400">جاري التحميل...</p>
         ) : (
           <div className="space-y-6 px-5 pb-12">
-            {/* Current khatma */}
             {currentKhatma && (
               <section>
                 <h3 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">
@@ -230,7 +223,6 @@ export function MemberProfileDrawer({
               </section>
             )}
 
-            {/* Past khatmas */}
             {pastKhatmas.length > 0 && (
               <section>
                 <h3 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">

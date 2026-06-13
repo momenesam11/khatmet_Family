@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
 import { Button, Card, StatusPill } from "@/components/ui";
 import { track } from "@vercel/analytics";
+import { BookOpen, CheckCircle2, Heart } from "lucide-react";
 
 const QuranPageViewer = dynamic(
   () => import("@/components/QuranPageViewer"),
@@ -48,7 +49,7 @@ function formatPages(
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  done: "قُرئت ✓",
+  done: "قُرئت",
   assigned: "حالية",
   excused: "اعتذار",
 };
@@ -130,7 +131,6 @@ export default function MemberPortalPage() {
     await loadPortal();
   }
 
-  // ── Loading ──────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <main className="grid min-h-screen place-items-center bg-emerald-50 p-6">
@@ -142,7 +142,6 @@ export default function MemberPortalPage() {
     );
   }
 
-  // ── Invalid token ────────────────────────────────────────────────────────────
   if (!data?.member) {
     return (
       <main className="grid min-h-screen place-items-center bg-slate-50 p-6">
@@ -167,10 +166,9 @@ export default function MemberPortalPage() {
     <main className="min-h-screen bg-linear-to-b from-emerald-50 to-white p-5" dir="rtl">
       <div className="mx-auto max-w-md space-y-4 py-6">
 
-        {/* ── Header ───────────────────────────────────────────────────────── */}
         <Card className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-700 text-3xl text-white">
-            🕌
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-700 text-white">
+            <BookOpen className="h-8 w-8" />
           </div>
           <p className="text-sm font-bold text-emerald-600">{data.family.name}</p>
           <h1 className="mt-1 text-2xl font-black text-slate-900">
@@ -181,7 +179,6 @@ export default function MemberPortalPage() {
           )}
         </Card>
 
-        {/* ── Assignment area ──────────────────────────────────────────────── */}
         {assignment ? (
           <>
             {/* Ward display */}
@@ -195,12 +192,10 @@ export default function MemberPortalPage() {
               </div>
             </Card>
 
-            {/* ── Quran page viewer ─────────────────────────────────────── */}
             {status === "assigned" && assignment.start_page != null && (
               <QuranPageViewer pageNumber={assignment.start_page} />
             )}
 
-            {/* ── ASSIGNED: action buttons ──────────────────────────────── */}
             {status === "assigned" && (
               <Card>
                 <label className="mb-4 block space-y-2 text-right">
@@ -221,7 +216,7 @@ export default function MemberPortalPage() {
                     disabled={actionLoading}
                     className="w-full min-h-14"
                   >
-                    {actionLoading ? "جاري التسجيل…" : "✓ تمت القراءة"}
+                    {actionLoading ? "جاري التسجيل…" : "تمت القراءة"}
                   </Button>
                   <Button
                     variant="secondary"
@@ -235,14 +230,13 @@ export default function MemberPortalPage() {
               </Card>
             )}
 
-            {/* ── DONE: success + optional extra ward ──────────────────── */}
             {status === "done" && (
               <Card className="text-center">
-                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-3xl">
-                  ✓
+                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+                  <CheckCircle2 className="h-8 w-8 text-emerald-700" />
                 </div>
                 <h2 className="text-xl font-black text-emerald-900">جزاك الله خيرًا!</h2>
-                <p className="mt-1 text-sm text-emerald-700">تقبّل الله قراءتك ✨</p>
+                <p className="mt-1 text-sm text-emerald-700">تقبّل الله قراءتك</p>
 
                 <div className="mt-5 border-t border-slate-100 pt-5">
                   {atLimit ? (
@@ -270,11 +264,10 @@ export default function MemberPortalPage() {
               </Card>
             )}
 
-            {/* ── EXCUSED: gentle message ───────────────────────────────── */}
             {status === "excused" && (
               <Card className="text-center">
-                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 text-3xl">
-                  🤍
+                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100">
+                  <Heart className="h-8 w-8 text-amber-600" />
                 </div>
                 <h2 className="text-xl font-black text-amber-900">لا بأس عليك</h2>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">
@@ -293,7 +286,6 @@ export default function MemberPortalPage() {
           </Card>
         )}
 
-        {/* ── Khatma history ───────────────────────────────────────────────── */}
         {data.history && data.history.length > 0 && (
           <Card>
             <h2 className="mb-4 text-base font-black text-slate-700">سجلك في الختمة دي</h2>
@@ -326,14 +318,12 @@ export default function MemberPortalPage() {
           </Card>
         )}
 
-        {/* ── Error message ─────────────────────────────────────────────────── */}
         {errorMsg && (
           <div className="rounded-2xl border border-rose-100 bg-rose-50 p-3 text-center text-sm font-bold text-rose-700">
             {errorMsg}
           </div>
         )}
 
-        {/* ── Footer ───────────────────────────────────────────────────────── */}
         <p className="text-center text-xs text-slate-400">
           لا تحتاج لتسجيل دخول — هذا الرابط خاص بك فقط.
         </p>

@@ -243,7 +243,6 @@ export default function AdminPage() {
         )}
 
         <Card>
-          {/* Mobile card list */}
           <div className="space-y-4 lg:hidden">
             {families.map((family) => {
               const owner = profilesById.get(family.owner_id);

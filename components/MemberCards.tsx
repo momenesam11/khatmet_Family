@@ -85,7 +85,7 @@ export function MemberCards({ members, assignments, onUpdateAssignmentStatus }: 
 
       if (currentAssignment) {
         if (currentAssignment.status === "done") {
-          statusLabel = "قُرئ ✓";
+          statusLabel = "قُرئ";
           pillClass = "bg-emerald-50 text-emerald-700 border-emerald-200/60";
           statusKey = "done";
         } else if (currentAssignment.status === "excused") {
@@ -134,7 +134,6 @@ export function MemberCards({ members, assignments, onUpdateAssignmentStatus }: 
             className="flex flex-col justify-between rounded-3xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm transition hover:shadow-md glass-card"
           >
             <div className="space-y-3">
-              {/* Header: Member name & Access role */}
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1.5 sm:gap-2">
                 <h4 className="font-black text-slate-900 text-sm sm:text-base leading-tight truncate" title={member.name}>
                   {member.name}
@@ -144,7 +143,6 @@ export function MemberCards({ members, assignments, onUpdateAssignmentStatus }: 
                 </span>
               </div>
 
-              {/* Current Assignment page info */}
               <div className="space-y-0.5 sm:space-y-1">
                 <p className="text-[10px] sm:text-xs text-slate-400">الورد الحالي</p>
                 <p className="text-xs sm:text-sm font-bold text-slate-800">

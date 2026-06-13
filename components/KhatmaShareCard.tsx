@@ -53,10 +53,9 @@ const KhatmaShareCard = React.forwardRef<HTMLDivElement, Props>(
         <div className="pointer-events-none absolute -bottom-10 -left-10 h-36 w-36 rounded-full bg-white/5" />
         <div className="pointer-events-none absolute inset-4 rounded-2xl border border-white/10" />
 
-        {/* Header */}
         <div className="relative z-10 w-full border-b border-white/10 px-6 py-4 text-center">
           <p className="text-[11px] font-black tracking-widest text-amber-300 uppercase">
-            🕌 ختمة عيلة
+            ختمة عيلة
           </p>
           <p className="mt-0.5 text-[10px] font-semibold text-white/50">{today}</p>
         </div>

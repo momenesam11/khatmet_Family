@@ -31,7 +31,6 @@ import {
   Zap,
 } from "lucide-react";
 
-/* ── Islamic ornamental divider ── */
 function IslamicDivider() {
   return (
     <div className="flex items-center justify-center gap-3 mb-3">
@@ -46,7 +45,6 @@ function IslamicDivider() {
   );
 }
 
-/* ── Section header wrapper ── */
 function SectionHeader({ badge, badgeColor = "emerald", title, subtitle }: {
   badge: string;
   badgeColor?: "emerald" | "amber" | "rose";
@@ -78,15 +76,10 @@ export default function Home() {
       className="min-h-screen bg-islamic-grid relative antialiased overflow-x-hidden selection:bg-emerald-100 selection:text-emerald-950 font-sans"
       style={{ animation: "page-enter 0.6s ease-out both" }}
     >
-      {/* ── Fixed Islamic background elements ── */}
       <IslamicBackground />
 
-      {/* ── Navbar ── */}
       <Navbar />
 
-      {/* ══════════════════════════════════════
-          1. HERO
-      ══════════════════════════════════════ */}
       <section className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 pb-20 lg:pt-16 lg:pb-32">
         {/* Soft background glows */}
         <div className="absolute top-1/4 right-0 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -100,7 +93,7 @@ export default function Home() {
             {/* "مجاني" pill */}
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs sm:text-sm font-bold text-emerald-800 shadow-sm">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500" style={{ animation: "glow-pulse 2s ease-in-out infinite" }}/>
-              ✦ مجاني بالكامل — بدون بطاقة ائتمان
+              مجاني بالكامل — بدون بطاقة ائتمان
             </div>
 
             <div className="space-y-5">
@@ -175,9 +168,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════
-          2. PROBLEM
-      ══════════════════════════════════════ */}
       <section className="bg-white/60 border-y border-slate-200/50 py-20 relative">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeader
@@ -207,9 +197,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════
-          3. FEATURES
-      ══════════════════════════════════════ */}
       <section id="features" className="py-20 relative">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeader
@@ -241,9 +228,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════
-          4. HOW IT WORKS
-      ══════════════════════════════════════ */}
       <section id="how-it-works" className="bg-[#FAF8F2] py-20 border-y border-amber-900/5">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeader
@@ -279,9 +263,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════
-          5. MEMBER EXPERIENCE
-      ══════════════════════════════════════ */}
       <section className="py-20 relative">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
@@ -290,7 +271,7 @@ export default function Home() {
               <div className="relative">
                 <div className="absolute -right-4 -top-4 bg-amber-100 text-amber-800 text-[10px] font-black px-3 py-1 rounded-full border border-amber-200 shadow-sm z-30"
                   style={{ animation: "float-gentle 3s ease-in-out infinite" }}>
-                  👆 جرب الضغط!
+                  جرب الضغط
                 </div>
                 <MemberExperienceMockup />
               </div>
@@ -329,9 +310,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════
-          6. DASHBOARD
-      ══════════════════════════════════════ */}
       <section className="bg-white/60 border-y border-slate-200/50 py-20 relative">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
@@ -352,20 +330,20 @@ export default function Home() {
                   "إرسال تذكيرات لطيفة بضغطة واحدة",
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3">
-                    <div className="h-5 w-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 mt-0.5 text-xs font-black">✓</div>
+                    <div className="h-5 w-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 mt-0.5"><Check className="h-3 w-3" /></div>
                     <p className="text-slate-600 text-sm font-semibold">{item}</p>
                   </div>
                 ))}
               </div>
               <div className="flex flex-wrap gap-2.5 pt-1">
                 <button className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-sm transition">
-                  💬 إرسال تذكير واتساب
+                  إرسال تذكير واتساب
                 </button>
                 <button className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs py-2.5 px-4 rounded-xl transition">
-                  ✏️ تسجيل قراءة يدوية
+                  تسجيل قراءة يدوية
                 </button>
                 <button className="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs py-2.5 px-4 rounded-xl transition">
-                  🔄 توزيع ورد جديد
+                  توزيع ورد جديد
                 </button>
               </div>
             </ScrollReveal>
@@ -412,9 +390,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════
-          7. FREE / PRICING
-      ══════════════════════════════════════ */}
       <section id="pricing" className="bg-[#FAF8F2] py-20 border-y border-amber-900/5 relative">
         <div className="absolute inset-0 bg-radial-gradient-glow pointer-events-none" />
         <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 relative z-10 text-center">
@@ -422,7 +397,7 @@ export default function Home() {
           <ScrollReveal animation="reveal" className="space-y-3 mb-10">
             <IslamicDivider />
             <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 inline-block">
-              🤍 مجاني بالكامل
+              مجاني بالكامل
             </span>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-800">ختمة عيلة مجانية بالكامل</h2>
             <p className="text-slate-500 text-sm sm:text-base font-medium max-w-md mx-auto">
@@ -451,7 +426,7 @@ export default function Home() {
                   ابدأ مجاناً الآن
                 </a>
                 <a href="/payment-pending" className="flex-1 rounded-2xl border border-emerald-200 bg-white py-4 text-center text-sm font-bold text-emerald-700 transition hover:bg-emerald-50">
-                  ادعم المشروع 🤍
+                  ادعم المشروع
                 </a>
               </div>
             </div>
@@ -460,9 +435,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════
-          8. SADAQA
-      ══════════════════════════════════════ */}
       <section className="py-20 bg-white relative">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <ScrollReveal animation="reveal-scale">
@@ -480,7 +452,7 @@ export default function Home() {
                   لذلك نلتزم باقتطاع جزء من كل تبرع ليخرج صدقة جارية لدعم وجوه الخير.
                 </p>
                 <div className="rounded-2xl border border-amber-100 bg-amber-50/60 px-4 py-3 text-sm font-semibold text-amber-800">
-                  🕊️ سيتم الإعلان عن أول صدقة قريباً إن شاء الله
+                  سيتم الإعلان عن أول صدقة قريباً إن شاء الله
                 </div>
               </div>
             </div>
@@ -488,14 +460,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════
-          9. FAQ
-      ══════════════════════════════════════ */}
       <FAQSection />
 
-      {/* ══════════════════════════════════════
-          10. FINAL CTA
-      ══════════════════════════════════════ */}
       <section className="bg-[#FAF8F2] border-t border-amber-900/5 py-24 relative overflow-hidden text-center">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/4 rounded-full blur-3xl pointer-events-none" />
 
@@ -535,17 +501,16 @@ export default function Home() {
 
           <ScrollReveal animation="reveal" delay={200}>
             <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs font-semibold text-slate-400">
-              <span>✓ مجاني بالكامل</span>
+              <span>مجاني بالكامل</span>
               <span className="hidden sm:inline">•</span>
-              <span>✓ تفعيل فوري</span>
+              <span>تفعيل فوري</span>
               <span className="hidden sm:inline">•</span>
-              <span>✓ بدون التزام</span>
+              <span>بدون التزام</span>
             </div>
           </ScrollReveal>
         </div>
       </section>
 
-      {/* ── Footer ── */}
       <Footer />
     </main>
   );

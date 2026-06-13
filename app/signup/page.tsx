@@ -72,7 +72,6 @@ export default function SignupPage() {
           <span>العودة للرئيسية</span>
         </Link>
 
-        {/* Brand Header */}
         <div className="flex items-center gap-2.5 mb-6 sm:gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-emerald-600 to-emerald-800 text-white shadow shadow-emerald-950/10 sm:h-10 sm:w-10">
             <BookOpen className="h-5 w-5 text-amber-100" />

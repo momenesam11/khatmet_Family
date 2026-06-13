@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="7" fill="#065f46"/>
+
+  <!-- Open Quran / book -->
+  <path d="M16 8 C12 7 7 8 7 8 L7 22 C7 22 12 21 16 22 Z" fill="white" opacity="0.95"/>
+  <path d="M16 8 C20 7 25 8 25 8 L25 22 C25 22 20 21 16 22 Z" fill="white" opacity="0.70"/>
+  <rect x="15.4" y="8" width="1.2" height="14" rx="0.6" fill="#065f46"/>
+
+  <!-- Book stand / rehal -->
+  <path d="M9 22 L7.5 25.5 L16 24.5 L24.5 25.5 L23 22" stroke="white" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+
+  <!-- Crescent: big circle minus offset smaller circle -->
+  <clipPath id="cr">
+    <circle cx="21.5" cy="5.5" r="3"/>
+  </clipPath>
+  <circle cx="21.5" cy="5.5" r="3" fill="white" opacity="0.9"/>
+  <circle cx="22.8" cy="4.8" r="2.2" fill="#065f46"/>
+
+  <!-- Star dot -->
+  <circle cx="26" cy="4" r="0.9" fill="white" opacity="0.75"/>
+</svg>

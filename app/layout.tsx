@@ -12,6 +12,14 @@ const cairo = Cairo({
 export const metadata: Metadata = {
   title: "ختمة عيلة — تنظيم أوراد القرآن الكريم للعائلات",
   description: "خدمة دينية بسيطة ومحترمة تساعد العائلات على تقسيم ومتابعة ختمات القرآن الكريم بسهولة وبشكل منظم.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/logo.png", type: "image/png" },
+    ],
+    apple: "/logo.png",
+    shortcut: "/icon.svg",
+  },
 };
 
 export const viewport = {

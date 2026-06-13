@@ -35,6 +35,8 @@ import {
   Heart,
   ChevronLeft,
   Bell,
+  Sparkles,
+  Download,
 } from "lucide-react";
 
 type Family = {
@@ -69,8 +71,6 @@ type Assignment = {
 function getMemberLink(token: string) {
   return `${window.location.origin}/member/${token}`;
 }
-
-// ── Khatma Completion Modal ──────────────────────────────────────────────────
 
 const PURPOSES_MODAL = [
   { key: "family_ongoing", label: "ختمة عائلية مستمرة" },
@@ -107,7 +107,7 @@ function KhatmaCompletionModal({
       const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], `ختمة-${familyName}-${khatmaNumber}.png`, { type: "image/png" });
       if (typeof navigator !== "undefined" && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ title: `ختمة عيلة ${familyName} رقم ${khatmaNumber}`, text: "بسم الله، اكتملت ختمتنا — ختمة عيلة 🤍", files: [file] });
+        await navigator.share({ title: `ختمة عيلة ${familyName} رقم ${khatmaNumber}`, text: "بسم الله، اكتملت ختمتنا — ختمة عيلة", files: [file] });
       } else {
         const link = document.createElement("a");
         link.download = `ختمة-${familyName}-${khatmaNumber}.png`;
@@ -135,9 +135,9 @@ function KhatmaCompletionModal({
         <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl" style={{ animation: "fade-up 0.3s ease-out" }}>
           <div className="h-1.5 bg-linear-to-r from-emerald-500 to-emerald-700" />
           <div className="space-y-5 p-5 text-center sm:p-8">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-4 border-emerald-100 bg-emerald-50 text-4xl">🕌</div>
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-4 border-emerald-100 bg-emerald-50"><BookOpen className="h-10 w-10 text-emerald-600" /></div>
             <div className="space-y-1">
-              <h2 className="text-2xl font-black text-emerald-950">مبروك! عيلتكم ختمت القرآن 🤍</h2>
+              <h2 className="text-2xl font-black text-emerald-950">مبروك! عيلتكم ختمت القرآن</h2>
               <p className="text-sm font-semibold text-emerald-700">تقبّل الله منكم، وجعله في ميزان حسناتكم.</p>
               <p className="text-xs font-medium text-slate-400">الختمة رقم {khatmaNumber} لعيلة {familyName}</p>
             </div>
@@ -153,13 +153,13 @@ function KhatmaCompletionModal({
             )}
             <div className="space-y-2.5 pt-1">
               <button onClick={() => setPhase("share")} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-emerald-600 to-emerald-700 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition hover:from-emerald-700 hover:to-emerald-800">
-                🎉 شارك الإنجاز
+                <Sparkles className="h-4 w-4" /> شارك الإنجاز
               </button>
               <Link href="/payment-pending" className="flex w-full items-center justify-center rounded-2xl border border-emerald-200 bg-white px-6 py-3.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50">
                 ادعم المشروع
               </Link>
               <button onClick={onClose} className="w-full rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-500 transition hover:bg-slate-50">
-                تمام، شكراً 🤍
+                تمام، شكراً
               </button>
             </div>
           </div>
@@ -176,14 +176,14 @@ function KhatmaCompletionModal({
           <div className="space-y-5 p-5 sm:p-6">
             <div className="text-center">
               <h2 className="text-lg font-black text-slate-800">بطاقة الإنجاز</h2>
-              <p className="mt-0.5 text-xs font-medium text-slate-400">احفظها وشاركها مع العيلة على واتساب 📲</p>
+              <p className="mt-0.5 text-xs font-medium text-slate-400">احفظها وشاركها مع العيلة على واتساب</p>
             </div>
             <div className="flex justify-center overflow-x-auto rounded-2xl bg-slate-100 p-3">
               <KhatmaShareCard ref={shareCardRef} familyName={familyName} khatmaNumber={khatmaNumber} purpose={purpose} purposeNote={purposeNote} />
             </div>
             <div className="space-y-2.5">
               <button onClick={handleSaveImage} disabled={capturing} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-emerald-600 to-emerald-700 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition hover:from-emerald-700 hover:to-emerald-800 disabled:opacity-50">
-                {capturing ? (<><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />جاري التصدير...</>) : "📥 حفظ ومشاركة"}
+                {capturing ? (<><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />جاري التصدير...</>) : <><Download className="h-4 w-4" /> حفظ ومشاركة</>}
               </button>
               <button onClick={() => setPhase("intention")} className="w-full rounded-2xl border border-emerald-200 bg-white px-6 py-3 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50">
                 اختر نية الختمة الجديدة
@@ -239,8 +239,6 @@ function KhatmaCompletionModal({
   );
 }
 
-// ── Main Dashboard ──────────────────────────────────────────────────────────
-
 export default function DashboardPage() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
@@ -273,10 +271,10 @@ export default function DashboardPage() {
   const overallProgress = Math.round((completedCount / 604) * 100);
 
   let encourageMessage = "";
-  if (overallProgress < 25)      encourageMessage = "بداية موفقة، بارك الله في عيلتكم 🤍";
-  else if (overallProgress < 50) encourageMessage = "في المنتصف، ربنا يتمم عليكم ويتقبل منكم 🙌";
-  else if (overallProgress <= 75) encourageMessage = "أكثر من النص، ربنا يكمّل همّتكم بالخير ✨";
-  else                            encourageMessage = "قاربتم على الختم، بشراكم وعقبال الختمات الجاية 🎉";
+  if (overallProgress < 25)      encourageMessage = "بداية موفقة، بارك الله في عيلتكم";
+  else if (overallProgress < 50) encourageMessage = "في المنتصف، ربنا يتمم عليكم ويتقبل منكم";
+  else if (overallProgress <= 75) encourageMessage = "أكثر من النص، ربنا يكمّل همّتكم بالخير";
+  else                            encourageMessage = "قاربتم على الختم، بشراكم وعقبال الختمات الجاية";
 
   useEffect(() => {
     async function init() {
@@ -433,7 +431,7 @@ export default function DashboardPage() {
 
   function copyText(text: string) {
     navigator.clipboard?.writeText(text);
-    setMessage("تم النسخ ✓");
+    setMessage("تم النسخ");
     setTimeout(() => setMessage(""), 1500);
   }
 
@@ -444,7 +442,6 @@ export default function DashboardPage() {
     window.open(`https://wa.me/${normalized}?text=${encodeURIComponent(text)}`, "_blank");
   }
 
-  // ── Loading ──────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <main className="grid min-h-screen place-items-center bg-slate-50 p-6">
@@ -473,7 +470,6 @@ export default function DashboardPage() {
 
   if (!family) return null;
 
-  // ── Tab definitions ──────────────────────────────────────────────────────────
   const TABS = [
     { key: "dashboard", label: "الرئيسية", icon: Home },
     { key: "members",   label: "أفراد",    icon: Users },
@@ -486,7 +482,6 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900" dir="rtl">
 
-      {/* ── Mobile top header ─────────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-slate-200/80 bg-white/95 backdrop-blur-sm px-4 py-3 lg:hidden">
         <div className="relative">
           <button
@@ -510,17 +505,20 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="text-center">
-          <p className="text-sm font-black text-emerald-900 leading-tight">ختمة عيلة</p>
-          <p className="text-[10px] font-semibold text-slate-400 truncate max-w-30">{family.name}</p>
+        <div className="flex items-center gap-2">
+          <img src="/logo.png" alt="ختمة عيلة" className="h-8 w-8 object-contain" />
+          <div className="text-right">
+            <p className="text-xs font-black text-emerald-900 leading-tight">ختمة عيلة</p>
+            <p className="text-[10px] font-semibold text-slate-400 truncate max-w-24">{family.name}</p>
+          </div>
         </div>
 
-        <div className="h-9 w-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
-          <span className="text-emerald-700 font-black text-sm">{family.name.charAt(0)}</span>
-        </div>
+        <Link href="/payment-pending"
+          className="flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-200 px-3 py-1.5 text-xs font-bold text-amber-700 hover:bg-amber-100 transition">
+          <Heart className="h-3.5 w-3.5" /> ادعمنا
+        </Link>
       </header>
 
-      {/* ── Toast message ─────────────────────────────────────────────────── */}
       {message && (
         <div className="fixed top-16 left-1/2 z-50 -translate-x-1/2 lg:top-6" style={{ animation: "fade-up 0.2s ease-out" }}>
           <div className="rounded-2xl bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-900/20">
@@ -529,14 +527,18 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
+      <div className="lg:grid lg:grid-cols-[280px_1fr]">
 
-        {/* ── Desktop sidebar ──────────────────────────────────────────────── */}
-        <aside className="hidden border-l border-slate-200 bg-white p-5 lg:flex lg:flex-col">
+        <aside className="hidden border-l border-slate-200 bg-white p-5 lg:flex lg:flex-col lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto">
           <div className="mb-8">
-            <p className="text-2xl font-black text-emerald-900">ختمة عيلة</p>
-            <p className="mt-1 text-sm font-semibold text-slate-500">{family.name}</p>
-            <p className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-bold ${family.active ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+            <div className="flex items-center gap-3 mb-4">
+              <img src="/logo.png" alt="ختمة عيلة" className="h-12 w-12 object-contain shrink-0" />
+              <div>
+                <p className="text-xl font-black text-emerald-900 leading-tight">ختمة عيلة</p>
+                <p className="text-xs font-semibold text-slate-400">{family.name}</p>
+              </div>
+            </div>
+            <p className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${family.active ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
               {family.active ? "الحساب مفعل" : "في انتظار التفعيل"}
             </p>
           </div>
@@ -561,6 +563,10 @@ export default function DashboardPage() {
           </nav>
 
           <div className="mt-4 space-y-2 border-t border-slate-100 pt-4">
+            <Link href="/payment-pending"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm font-bold text-amber-700 hover:bg-amber-100 transition">
+              <Heart className="h-4 w-4" /> ادعم المشروع
+            </Link>
             {userRole === "super_admin" && (
               <Link href="/admin" className="flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-200 transition">
                 <ShieldCheck className="h-4 w-4" /> Admin Panel
@@ -572,7 +578,6 @@ export default function DashboardPage() {
           </div>
         </aside>
 
-        {/* ── Content ──────────────────────────────────────────────────────── */}
         <section className="p-3 pb-24 sm:p-4 lg:p-8 lg:pb-8">
 
           {/* Page header */}
@@ -587,7 +592,7 @@ export default function DashboardPage() {
           {showSupportBanner && (
             <div dir="rtl" className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-sm">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-emerald-900">بقالكم أكتر من أسبوع مع ختمة عيلة 🤍</p>
+                <p className="text-sm font-bold text-emerald-900">بقالكم أكتر من أسبوع مع ختمة عيلة</p>
                 <p className="text-xs font-medium text-emerald-700">لو التطبيق نفعكم، فكّروا تدعموا استمراره.</p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
@@ -600,7 +605,6 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ── DASHBOARD TAB ─────────────────────────────────────────────── */}
           {activeTab === "dashboard" && (
             <div className="space-y-4" dir="rtl" style={{ animation: "fade-up 0.25s ease-out" }}>
 
@@ -653,7 +657,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Stats */}
               <StatsBar assignments={assignments} khatmasCompleted={family.khatmas_completed} totalMembers={members.length} />
 
               {/* Charity card */}
@@ -664,7 +667,7 @@ export default function DashboardPage() {
                     <p className="text-xs font-black text-amber-800">صدقتنا الجارية</p>
                   </div>
                   {charityPayments.length === 0 ? (
-                    <p className="text-xs font-semibold text-amber-700">سيتم الإعلان عن أول صدقة قريباً إن شاء الله 🤍</p>
+                    <p className="text-xs font-semibold text-amber-700">سيتم الإعلان عن أول صدقة قريباً إن شاء الله</p>
                   ) : (
                     <div className="space-y-1.5">
                       {charityPayments.map((p) => (
@@ -684,13 +687,11 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ── MEMBERS TAB ───────────────────────────────────────────────── */}
           {activeTab === "members" && (
             <div className="grid gap-4 xl:grid-cols-[1fr_360px]" style={{ animation: "fade-up 0.25s ease-out" }}>
               <Card>
                 <h2 className="mb-4 text-lg font-black sm:text-xl">أفراد العيلة</h2>
 
-                {/* Mobile card list */}
                 <div className="space-y-2.5 md:hidden">
                   {members.length === 0 && (
                     <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center">
@@ -779,7 +780,6 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ── TRACKING TAB ──────────────────────────────────────────────── */}
           {activeTab === "tracking" && (
             <div style={{ animation: "fade-up 0.25s ease-out" }}>
               <Card>
@@ -794,7 +794,6 @@ export default function DashboardPage() {
                   </button>
                 </div>
 
-                {/* Stats mini grid */}
                 <div className="mb-5 grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-4">
                   <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-3 text-center">
                     <p className="text-xl font-black text-emerald-700">{progress}%</p>
@@ -877,7 +876,6 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ── MESSAGES TAB ──────────────────────────────────────────────── */}
           {activeTab === "messages" && (
             <div style={{ animation: "fade-up 0.25s ease-out" }}>
               <div className="mb-4">
@@ -914,7 +912,6 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
-                      {/* Message preview */}
                       <div className="rounded-xl bg-slate-50 border border-slate-100 px-3 py-2.5 text-xs leading-6 text-slate-600 font-medium">
                         {text}
                       </div>
@@ -954,17 +951,14 @@ export default function DashboardPage() {
         </section>
       </div>
 
-      {/* ── Member Profile Drawer ─────────────────────────────────────────── */}
       {selectedMember && (
         <MemberProfileDrawer member={selectedMember} onClose={() => setSelectedMember(null)} onCopy={copyText} />
       )}
 
-      {/* ── Khatma Completion Modal ───────────────────────────────────────── */}
       {showCompletionModal && (
         <KhatmaCompletionModal khatmaNumber={completedKhatmaNumber} familyName={family.name} purpose={activePlan?.purpose} purposeNote={activePlan?.purpose_note} activePlanId={activePlan?.id} onClose={() => setShowCompletionModal(false)} />
       )}
 
-      {/* ── History Bottom Sheet (mobile) ─────────────────────────────────── */}
       {historySheetOpen && (
         <div className="fixed inset-0 z-40 lg:hidden" dir="rtl">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setHistorySheetOpen(false)} />
@@ -984,7 +978,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Mobile bottom tab bar ─────────────────────────────────────────── */}
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200/80 bg-white/95 backdrop-blur-sm safe-bottom lg:hidden" dir="rtl">
         <div className="flex">
           {TABS.map(({ key, label, icon: Icon }) => {

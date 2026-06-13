@@ -155,7 +155,7 @@ export function KhatmaHistoryTab({ familyId }: { familyId: string }) {
                     </span>
                   ) : (
                     <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-500 flex-shrink-0">
-                      مكتملة ✓
+                      مكتملة
                     </span>
                   )}
                 </div>
